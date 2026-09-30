@@ -4,10 +4,10 @@ import { useState } from "react";
 import { Check, Copy, Laptop } from "lucide-react";
 import type { AgentDetail, HireResponse } from "@/lib/api";
 
-// TODO(local-runtime): point at the real AgentHub Local (Windows sidecar) installer once
-// apps/local-runtime ships a packaged artifact. No installer or download route exists yet.
+// Override with NEXT_PUBLIC_LOCAL_RUNTIME_DOWNLOAD_URL when hosting the Windows installer.
 export const LOCAL_RUNTIME_DOWNLOAD_URL =
-  process.env.NEXT_PUBLIC_LOCAL_RUNTIME_DOWNLOAD_URL || "/downloads/AgentHubLocalSetup.exe";
+  process.env.NEXT_PUBLIC_LOCAL_RUNTIME_DOWNLOAD_URL ||
+  "/downloads/AgentHubLocalRuntimeSetup-0.1.0.exe";
 
 export function isLocalAgent(agent: Pick<AgentDetail, "manifest">): boolean {
   return agent.manifest?.runtime?.type === "local";

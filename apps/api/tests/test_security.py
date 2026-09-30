@@ -7,6 +7,7 @@ from httpx import AsyncClient
 from sqlalchemy import select
 
 from app.models import RentalSession, SessionStatus
+from tests.conftest import error_body
 
 
 @pytest.mark.asyncio
@@ -79,7 +80,7 @@ async def test_expired_session_execution_rejected(client: AsyncClient, seed_data
         headers={"Authorization": f"Bearer {token}"},
     )
     assert exec_resp.status_code == 410
-    assert exec_resp.json()["error"]["code"] == "SESSION_EXPIRED"
+    assert error_body(exec_resp)["code"] == "SESSION_EXPIRED"
 
 
 @pytest.mark.asyncio

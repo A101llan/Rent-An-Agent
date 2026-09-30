@@ -92,6 +92,7 @@ async def _load_session(db: AsyncSession, session_id) -> RentalSession:
         select(RentalSession)
         .options(
             selectinload(RentalSession.rental).selectinload(Rental.agent),
+            selectinload(RentalSession.rental).selectinload(Rental.agent_version),
             selectinload(RentalSession.rental).selectinload(Rental.customer),
             selectinload(RentalSession.runtime_instance),
         )

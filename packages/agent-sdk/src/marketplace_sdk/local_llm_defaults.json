@@ -1,0 +1,10 @@
+{
+  "_doc": "Checked-in defaults for AgentHub local-Ollama agents. Override any key with env vars (see marketplace_sdk/local_llm_config.py). Chosen by the Ollama integrator from .dev-tools/ollama-model-compare-meeting-notes.json.",
+  "model": "llama3.2:1b",
+  "ollama_url": "http://127.0.0.1:11434",
+  "num_ctx": 4096,
+  "keep_alive": "15m",
+  "prompts": {
+    "meeting-notes": "meeting-notes.v2-decisions-first"
+  }
+}

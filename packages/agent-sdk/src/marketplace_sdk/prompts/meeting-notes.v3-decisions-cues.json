@@ -1,0 +1,55 @@
+{
+  "name": "meeting-notes.v3-decisions-cues",
+  "strategy": "decisions_first",
+  "note": "v2 (decisions-first, 2 passes, few-shot) + a deterministic keyword scan (agreed/decided/decision/final/approved/confirmed/locked) whose candidate lines are appended to the decisions pass as hints.",
+  "passes": {
+    "decisions": {
+      "system": "You find the DECISIONS in meeting notes.\nA decision is a choice the group settled on: something they agreed to do, use, change or stop, or a rule they set. Examples of decision wording: \"we agreed to ...\", \"decided\", \"Decision: ...\", \"final\", \"let's go with ...\", \"X blocks the release\", \"move Y to next sprint\", \"price is ...\".\nNOT decisions: tasks a person will do, questions, proposals that were rejected, status updates, small talk.\nIf a plan was changed during the meeting, write ONLY the final version.\nReturn {\"decisions\": [short statements]}. Use [] if there are none.",
+      "examples": [
+        {
+          "input": "Ravi: let's hold the offsite in Nanyuki. Joy: too far for the Mombasa team. Ravi: fine, Limuru then, final. Joy: I'll book the bus. Ravi: do we invite partners? Joy: Decision: offsite budget capped at 200k.",
+          "output": {
+            "decisions": [
+              "Offsite will be in Limuru (not Nanyuki)",
+              "Offsite budget capped at 200k"
+            ]
+          }
+        }
+      ]
+    },
+    "items": {
+      "system": "You extract ACTION ITEMS and OPEN QUESTIONS from meeting notes and write a summary.\n- action_items: tasks someone must do after the meeting. owner = the person who said \"I will / I'll ...\", who was asked by name (\"X, can you ...\"), or the owner listed in an action-item table. If people only said \"someone should ...\" and nobody took it, owner = \"Unassigned\". task = short phrase, keep the deadline if one was said.\n- open_questions: questions still unanswered at the end of the meeting.\n- summary: 1-2 sentences: the topic and the main outcome.\nThe decisions already found are listed for context; do not repeat them as tasks. Use only facts from the notes.",
+      "examples": [
+        {
+          "input": "Ravi: let's hold the offsite in Nanyuki. Joy: too far for the Mombasa team. Ravi: fine, Limuru then, final. Joy: I'll book the bus. Ravi: someone should tell the caterers. Ravi: do we invite partners?\nDecisions already found: Offsite will be in Limuru (not Nanyuki)",
+          "output": {
+            "summary": "Planned the team offsite and settled on Limuru.",
+            "action_items": [
+              {
+                "owner": "Joy",
+                "task": "Book the bus"
+              },
+              {
+                "owner": "Unassigned",
+                "task": "Tell the caterers"
+              }
+            ],
+            "open_questions": [
+              "Do we invite partners?"
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "leak_tokens": [
+    "offsite",
+    "limuru",
+    "nanyuki",
+    "ravi",
+    "caterer",
+    "200k",
+    "book the bus"
+  ],
+  "decision_cues": true
+}

@@ -1,0 +1,70 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+dist/
+build/
+.venv/
+venv/
+*.egg
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Next.js
+apps/web/.next/
+apps/web/out/
+
+# Testing
+.coverage
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Docker
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# MinIO data
+data/
+
+# Alembic
+# Keep versions tracked
+
+# Environment secrets
+.env
+.env.*
+!.env.example
+
+# Portable local dev binaries (Postgres, pgAdmin, Redis)
+.dev-tools/pgsql/
+.dev-tools/redis/
+.dev-tools/**/*.err
+
+# Editor / manual backups
+*.bak
+*.bak-*
+
+# Local runtime session state
+.session.json
+
+# Keep example env files
+!.env.local.example

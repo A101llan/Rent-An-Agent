@@ -1,0 +1,67 @@
+{
+  "_doc": "Ground truth written by hand for the messy transcripts. Grader: keyword heuristics + manual review in the evidence file.",
+  "01-payouts-standup.txt": {
+    "decisions_required": [
+      {"id": "exponential backoff, max 6 retries", "all": [["backoff", "exponential"]]},
+      {"id": "Postgres 16 migration moved to next sprint", "all": [["postgres", "migration"], ["next sprint"]]}
+    ],
+    "decisions_forbidden": [
+      {"id": "reversed: migrate Friday night", "any": ["friday night"]},
+      {"id": "reversed: retry every 5 min", "any": ["every 5 min", "every five min"]}
+    ],
+    "actions": [
+      {"id": "Kevo implements backoff by Thursday", "task": ["backoff"], "owner": ["kevo", "kevin"]},
+      {"id": "Fatuma asks Mercy in finance re sandbox cert", "task": ["mercy", "finance", "sandbox", "cert"], "owner": ["fatuma"]},
+      {"id": "update on-call runbook (nobody took it)", "task": ["runbook"], "owner": ["unassigned"]}
+    ],
+    "actions_forbidden": [
+      {"id": "reversed: Brian babysits Friday-night migration", "task": ["friday night", "babysit"]}
+    ],
+    "open_questions": [
+      {"id": "kill old USSD flow?", "any": ["ussd"]}
+    ]
+  },
+  "02-product-sync.md": {
+    "decisions_required": [
+      {"id": "KES 50 per run with 20-page cap", "all": [["50"], ["20"]]},
+      {"id": "refunds only after support review (auto refund reversed)", "all": [["refund"], ["review"]]}
+    ],
+    "decisions_forbidden": [
+      {"id": "reversed: auto refund", "any": ["auto refund", "automatic refund", "auto-refund"]},
+      {"id": "rejected: per-page pricing", "any": ["per-page pricing", "per page pricing"]}
+    ],
+    "actions": [
+      {"id": "Dan mocks up 2-step onboarding by next Wed", "task": ["mock", "onboarding"], "owner": ["dan"]},
+      {"id": "Priya sends copy tomorrow", "task": ["copy"], "owner": ["priya"]},
+      {"id": "Ochi's team: Mac effort estimate by Friday", "task": ["estimate", "mac"], "owner": ["ochi", "ochieng"]},
+      {"id": "write 'why Ollama' FAQ (nobody took it)", "task": ["faq"], "owner": ["unassigned"]}
+    ],
+    "actions_forbidden": [],
+    "open_questions": [
+      {"id": "who integrates M-Pesa STK push?", "any": ["stk", "m-pesa", "mpesa"]},
+      {"id": "Mac support at launch?", "any": ["mac"]}
+    ]
+  },
+  "03-client-call-kariuki-logistics.docx": {
+    "decisions_required": [
+      {"id": "pilot = 3 depots (Nairobi, Mombasa, Nakuru)", "all": [["three", "3 depot", "nakuru"]], "_grader_note": "relaxed 10:35 EAT from [three|3]+[depot]: outputs listing Nairobi, Mombasa, Nakuru are correct"},
+      {"id": "30 days free then KES 50/run", "all": [["30", "thirty"], ["free"]]},
+      {"id": "no cloud LLM fallback", "all": [["cloud"]]}
+    ],
+    "decisions_forbidden": [
+      {"id": "reversed: all five depots", "any": ["five depots", "5 depots", "all five", "all 5"]}
+    ],
+    "actions": [
+      {"id": "Achieng sends pilot agreement draft by Monday", "task": ["agreement"], "owner": ["achieng"]},
+      {"id": "Lucy shares depot list + contacts by Wednesday", "task": ["depot", "contact", "list"], "owner": ["lucy"]},
+      {"id": "Mzee Kariuki gets IT security / CISO sign-off", "task": ["sign-off", "signoff", "sign off", "ciso", "security"], "owner": ["kariuki", "mzee"]},
+      {"id": "check depot PCs have 8GB RAM (nobody took it)", "task": ["ram", "8 gig", "8gb"], "owner": ["unassigned"]}
+    ],
+    "actions_forbidden": [],
+    "open_questions": [
+      {"id": "Swahili voice notes support?", "any": ["voice", "swahili"]},
+      {"id": "who pays for RAM/hardware upgrades?", "any": ["upgrade", "hardware", "who pays", "ram"]},
+      {"id": "SAP Business One integration?", "any": ["sap"]}
+    ]
+  }
+}

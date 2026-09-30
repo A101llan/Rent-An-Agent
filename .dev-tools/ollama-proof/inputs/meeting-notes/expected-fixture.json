@@ -1,0 +1,20 @@
+{
+  "sample-meeting.docx": {
+    "_source": "apps/local-runtime/fixtures/sample-meeting.docx (Local Runtime Builder fixture; action items are in a Word TABLE)",
+    "decisions_required": [
+      {"id": "ship the new waiting screen in the 2.4 release", "all": [["waiting screen", "waiting-screen"], ["2.4"]]},
+      {"id": "receipt-page crash blocks the 2.4 release until fixed", "all": [["crash"], ["block"]]}
+    ],
+    "decisions_forbidden": [],
+    "actions": [
+      {"id": "Brian: retry with idempotency key on STK callback (Oct 3)", "task": ["idempotency", "retry"], "owner": ["brian"]},
+      {"id": "Carol: hand off final waiting-screen designs (Oct 1)", "task": ["hand off", "handoff", "design"], "owner": ["carol"]},
+      {"id": "David: regression test for Android 10 receipt crash (Oct 2)", "task": ["regression", "test"], "owner": ["david"]}
+    ],
+    "actions_forbidden": [],
+    "open_questions": [
+      {"id": "auto fallback to card after two failed STK pushes?", "any": ["card"]},
+      {"id": "who owns the payments-gateway SLA conversation?", "any": ["sla"]}
+    ]
+  }
+}

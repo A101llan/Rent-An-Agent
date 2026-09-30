@@ -1,0 +1,16 @@
+{
+  "name": "Invoice Analyzer",
+  "version": "1.0.0",
+  "runtime": {
+    "type": "docker",
+    "image": "agenthub/invoice-agent",
+    "digest": "sha256:placeholder"
+  },
+  "capabilities": ["document_analysis", "invoice_extraction"],
+  "permissions": ["files.read"],
+  "resources": {
+    "cpu": 1,
+    "memory_mb": 1024,
+    "timeout_seconds": 300
+  }
+}

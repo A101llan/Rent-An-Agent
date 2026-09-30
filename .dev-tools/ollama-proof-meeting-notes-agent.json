@@ -1,0 +1,3205 @@
+{
+  "agent_slug": "meeting-notes-agent",
+  "model": "llama3.2:1b",
+  "ollama_base_url": "http://127.0.0.1:11434",
+  "generated_at": "2026-09-30T09:52:43+03:00",
+  "timezone": "Africa/Nairobi (EAT, UTC+3)",
+  "health_check": {
+    "ok": true,
+    "code": "ok",
+    "message": "Ollama 0.32.13 on http://127.0.0.1:11434 with llama3.2:1b ready",
+    "base_url": "http://127.0.0.1:11434",
+    "model": "llama3.2:1b",
+    "ollama_version": "0.32.13",
+    "models_available": [
+      "llama3.2:1b"
+    ],
+    "latency_ms": 924
+  },
+  "decoding": {
+    "num_ctx": 8192,
+    "format": "JSON schema",
+    "retries": 1,
+    "modes": {
+      "production_t0": {
+        "temperature": 0.0,
+        "seeds": [
+          42,
+          42,
+          42
+        ]
+      },
+      "stress_t0.7": {
+        "temperature": 0.7,
+        "seeds": [
+          101,
+          202,
+          303
+        ]
+      }
+    }
+  },
+  "summary": [
+    {
+      "input": "01-payouts-standup.txt",
+      "mode": "production_t0",
+      "runs": 3,
+      "valid_contract": 3,
+      "pass_rate": 1.0,
+      "needed_repair": 0,
+      "latency_ms_median": 33539,
+      "latency_ms_max": 33790,
+      "quality_score_mean": 0.778,
+      "distinct_outputs": 1
+    },
+    {
+      "input": "02-product-sync.md",
+      "mode": "production_t0",
+      "runs": 3,
+      "valid_contract": 3,
+      "pass_rate": 1.0,
+      "needed_repair": 0,
+      "latency_ms_median": 32973,
+      "latency_ms_max": 52463,
+      "quality_score_mean": 0.111,
+      "distinct_outputs": 2
+    },
+    {
+      "input": "03-client-call-kariuki-logistics.docx",
+      "mode": "production_t0",
+      "runs": 3,
+      "valid_contract": 3,
+      "pass_rate": 1.0,
+      "needed_repair": 0,
+      "latency_ms_median": 70717,
+      "latency_ms_max": 118481,
+      "quality_score_mean": 0.571,
+      "distinct_outputs": 2
+    },
+    {
+      "input": "01-payouts-standup.txt",
+      "mode": "stress_t0.7",
+      "runs": 3,
+      "valid_contract": 3,
+      "pass_rate": 1.0,
+      "needed_repair": 0,
+      "latency_ms_median": 38433,
+      "latency_ms_max": 39145,
+      "quality_score_mean": 0.519,
+      "distinct_outputs": 3
+    },
+    {
+      "input": "02-product-sync.md",
+      "mode": "stress_t0.7",
+      "runs": 3,
+      "valid_contract": 3,
+      "pass_rate": 1.0,
+      "needed_repair": 0,
+      "latency_ms_median": 45045,
+      "latency_ms_max": 46888,
+      "quality_score_mean": 0.444,
+      "distinct_outputs": 3
+    },
+    {
+      "input": "03-client-call-kariuki-logistics.docx",
+      "mode": "stress_t0.7",
+      "runs": 3,
+      "valid_contract": 3,
+      "pass_rate": 1.0,
+      "needed_repair": 0,
+      "latency_ms_median": 77200,
+      "latency_ms_max": 148094,
+      "quality_score_mean": 0.5,
+      "distinct_outputs": 3
+    }
+  ],
+  "runs": [
+    {
+      "agent": "meeting-notes-agent",
+      "input": "01-payouts-standup.txt",
+      "mode": "production_t0",
+      "run": 1,
+      "temperature": 0.0,
+      "seed": 42,
+      "status": "completed",
+      "source": "ollama",
+      "valid_contract": true,
+      "contract_errors": [],
+      "attempts": [
+        1
+      ],
+      "chunks": 1,
+      "warnings": [
+        "dropped 1 item(s) copied from the prompt example"
+      ],
+      "latency_ms": 32966,
+      "usage": {
+        "input_tokens": 961,
+        "output_tokens": 232
+      },
+      "output": {
+        "summary": "Payouts squad discussion and decision on payouts retries and dashboard migration to Postgres 16.",
+        "decisions": [
+          "Exponential backoff, max 6 tries, not the 5 min thing.",
+          "Move Postgres 16 to next sprint, no migrations this sprint at all.",
+          "Update on-call runbook for new backoff.",
+          "Kill USSD flow if possible.",
+          "Get usage numbers from Kevo's analytics first.",
+          "Move to next sprint",
+          "No migrations this sprint at all."
+        ],
+        "action_items": [
+          {
+            "owner": "Kevo",
+            "task": "Write the backoff thing"
+          },
+          {
+            "owner": "Jiku",
+            "task": "Update on-call runbook for new backoff"
+          },
+          {
+            "owner": "Fatuma Hassan",
+            "task": "Ask Mercy in finance to ask about Daraja sandbox cert renewal"
+          },
+          {
+            "owner": "Unassigned",
+            "task": "Get usage numbers from Kevo's analytics first"
+          }
+        ],
+        "open_questions": []
+      },
+      "error": null,
+      "raw_model_outputs": [
+        "{\"summary\": \"Payouts squad discussion and decision on payouts retries and dashboard migration to Postgres 16.\", \"decisions\": [\"Exponential backoff, max 6 tries, not the 5 min thing.\", \"Move Postgres 16 to next sprint, no migrations this sprint at all.\", \"Update on-call runbook for new backoff.\", \"Kill USSD flow if possible.\", \"Get usage numbers from Kevo's analytics first.\", \"Move to next sprint\", \"No migrations this sprint at all.\"], \"action_items\": [{\"owner\": \"Kevo\", \"task\": \"Write the backoff thing\"}, {\"owner\": \"Jiku\", \"task\": \"Update on-call runbook for new backoff\"}, {\"owner\": \"Fatuma Hassan\", \"task\": \"Ask Mercy in finance to ask about Daraja sandbox cert renewal\"}, {\"owner\": \"Brian Otieno\", \"task\": \"Ask finance about Daraja sandbox cert renewal\"}, {\"owner\": \"Unassigned\", \"task\": \"Get usage numbers from Kevo's analytics first\"}], \"open_questions\": [\"Do we invite the board?\"]}"
+      ],
+      "ollama_calls": [
+        {
+          "prompt_eval_count": 961,
+          "eval_count": 232,
+          "total_duration_ms": 32741,
+          "load_duration_ms": 435,
+          "temperature": 0.0,
+          "seed": 42,
+          "wall_ms": 32792
+        }
+      ],
+      "grade": {
+        "decisions": [
+          {
+            "id": "exponential backoff, max 6 retries",
+            "found": true
+          },
+          {
+            "id": "Postgres 16 migration moved to next sprint",
+            "found": true
+          }
+        ],
+        "decisions_forbidden_hit": [],
+        "actions": [
+          {
+            "id": "Kevo implements backoff by Thursday",
+            "task_found": true,
+            "owner_correct": true,
+            "owners_given": [
+              "Kevo",
+              "Jiku"
+            ]
+          },
+          {
+            "id": "Fatuma asks Mercy in finance re sandbox cert",
+            "task_found": true,
+            "owner_correct": true,
+            "owners_given": [
+              "Fatuma Hassan"
+            ]
+          },
+          {
+            "id": "update on-call runbook (nobody took it)",
+            "task_found": true,
+            "owner_correct": false,
+            "owners_given": [
+              "Jiku"
+            ]
+          }
+        ],
+        "actions_forbidden_hit": [],
+        "open_questions": [
+          {
+            "id": "kill old USSD flow?",
+            "found": false
+          }
+        ],
+        "score": 0.778,
+        "points": "7/9 minus 0 reversed/forbidden items"
+      }
+    },
+    {
+      "agent": "meeting-notes-agent",
+      "input": "01-payouts-standup.txt",
+      "mode": "production_t0",
+      "run": 2,
+      "temperature": 0.0,
+      "seed": 42,
+      "status": "completed",
+      "source": "ollama",
+      "valid_contract": true,
+      "contract_errors": [],
+      "attempts": [
+        1
+      ],
+      "chunks": 1,
+      "warnings": [
+        "dropped 1 item(s) copied from the prompt example"
+      ],
+      "latency_ms": 33790,
+      "usage": {
+        "input_tokens": 961,
+        "output_tokens": 232
+      },
+      "output": {
+        "summary": "Payouts squad discussion and decision on payouts retries and dashboard migration to Postgres 16.",
+        "decisions": [
+          "Exponential backoff, max 6 tries, not the 5 min thing.",
+          "Move Postgres 16 to next sprint, no migrations this sprint at all.",
+          "Update on-call runbook for new backoff.",
+          "Kill USSD flow if possible.",
+          "Get usage numbers from Kevo's analytics first.",
+          "Move to next sprint",
+          "No migrations this sprint at all."
+        ],
+        "action_items": [
+          {
+            "owner": "Kevo",
+            "task": "Write the backoff thing"
+          },
+          {
+            "owner": "Jiku",
+            "task": "Update on-call runbook for new backoff"
+          },
+          {
+            "owner": "Fatuma Hassan",
+            "task": "Ask Mercy in finance to ask about Daraja sandbox cert renewal"
+          },
+          {
+            "owner": "Unassigned",
+            "task": "Get usage numbers from Kevo's analytics first"
+          }
+        ],
+        "open_questions": []
+      },
+      "error": null,
+      "raw_model_outputs": [
+        "{\"summary\": \"Payouts squad discussion and decision on payouts retries and dashboard migration to Postgres 16.\", \"decisions\": [\"Exponential backoff, max 6 tries, not the 5 min thing.\", \"Move Postgres 16 to next sprint, no migrations this sprint at all.\", \"Update on-call runbook for new backoff.\", \"Kill USSD flow if possible.\", \"Get usage numbers from Kevo's analytics first.\", \"Move to next sprint\", \"No migrations this sprint at all.\"], \"action_items\": [{\"owner\": \"Kevo\", \"task\": \"Write the backoff thing\"}, {\"owner\": \"Jiku\", \"task\": \"Update on-call runbook for new backoff\"}, {\"owner\": \"Fatuma Hassan\", \"task\": \"Ask Mercy in finance to ask about Daraja sandbox cert renewal\"}, {\"owner\": \"Brian Otieno\", \"task\": \"Ask finance about Daraja sandbox cert renewal\"}, {\"owner\": \"Unassigned\", \"task\": \"Get usage numbers from Kevo's analytics first\"}], \"open_questions\": [\"Do we invite the board?\"]}"
+      ],
+      "ollama_calls": [
+        {
+          "prompt_eval_count": 961,
+          "eval_count": 232,
+          "total_duration_ms": 33496,
+          "load_duration_ms": 1045,
+          "temperature": 0.0,
+          "seed": 42,
+          "wall_ms": 33581
+        }
+      ],
+      "grade": {
+        "decisions": [
+          {
+            "id": "exponential backoff, max 6 retries",
+            "found": true
+          },
+          {
+            "id": "Postgres 16 migration moved to next sprint",
+            "found": true
+          }
+        ],
+        "decisions_forbidden_hit": [],
+        "actions": [
+          {
+            "id": "Kevo implements backoff by Thursday",
+            "task_found": true,
+            "owner_correct": true,
+            "owners_given": [
+              "Kevo",
+              "Jiku"
+            ]
+          },
+          {
+            "id": "Fatuma asks Mercy in finance re sandbox cert",
+            "task_found": true,
+            "owner_correct": true,
+            "owners_given": [
+              "Fatuma Hassan"
+            ]
+          },
+          {
+            "id": "update on-call runbook (nobody took it)",
+            "task_found": true,
+            "owner_correct": false,
+            "owners_given": [
+              "Jiku"
+            ]
+          }
+        ],
+        "actions_forbidden_hit": [],
+        "open_questions": [
+          {
+            "id": "kill old USSD flow?",
+            "found": false
+          }
+        ],
+        "score": 0.778,
+        "points": "7/9 minus 0 reversed/forbidden items"
+      }
+    },
+    {
+      "agent": "meeting-notes-agent",
+      "input": "01-payouts-standup.txt",
+      "mode": "production_t0",
+      "run": 3,
+      "temperature": 0.0,
+      "seed": 42,
+      "status": "completed",
+      "source": "ollama",
+      "valid_contract": true,
+      "contract_errors": [],
+      "attempts": [
+        1
+      ],
+      "chunks": 1,
+      "warnings": [
+        "dropped 1 item(s) copied from the prompt example"
+      ],
+      "latency_ms": 33539,
+      "usage": {
+        "input_tokens": 961,
+        "output_tokens": 232
+      },
+      "output": {
+        "summary": "Payouts squad discussion and decision on payouts retries and dashboard migration to Postgres 16.",
+        "decisions": [
+          "Exponential backoff, max 6 tries, not the 5 min thing.",
+          "Move Postgres 16 to next sprint, no migrations this sprint at all.",
+          "Update on-call runbook for new backoff.",
+          "Kill USSD flow if possible.",
+          "Get usage numbers from Kevo's analytics first.",
+          "Move to next sprint",
+          "No migrations this sprint at all."
+        ],
+        "action_items": [
+          {
+            "owner": "Kevo",
+            "task": "Write the backoff thing"
+          },
+          {
+            "owner": "Jiku",
+            "task": "Update on-call runbook for new backoff"
+          },
+          {
+            "owner": "Fatuma Hassan",
+            "task": "Ask Mercy in finance to ask about Daraja sandbox cert renewal"
+          },
+          {
+            "owner": "Unassigned",
+            "task": "Get usage numbers from Kevo's analytics first"
+          }
+        ],
+        "open_questions": []
+      },
+      "error": null,
+      "raw_model_outputs": [
+        "{\"summary\": \"Payouts squad discussion and decision on payouts retries and dashboard migration to Postgres 16.\", \"decisions\": [\"Exponential backoff, max 6 tries, not the 5 min thing.\", \"Move Postgres 16 to next sprint, no migrations this sprint at all.\", \"Update on-call runbook for new backoff.\", \"Kill USSD flow if possible.\", \"Get usage numbers from Kevo's analytics first.\", \"Move to next sprint\", \"No migrations this sprint at all.\"], \"action_items\": [{\"owner\": \"Kevo\", \"task\": \"Write the backoff thing\"}, {\"owner\": \"Jiku\", \"task\": \"Update on-call runbook for new backoff\"}, {\"owner\": \"Fatuma Hassan\", \"task\": \"Ask Mercy in finance to ask about Daraja sandbox cert renewal\"}, {\"owner\": \"Brian Otieno\", \"task\": \"Ask finance about Daraja sandbox cert renewal\"}, {\"owner\": \"Unassigned\", \"task\": \"Get usage numbers from Kevo's analytics first\"}], \"open_questions\": [\"Do we invite the board?\"]}"
+      ],
+      "ollama_calls": [
+        {
+          "prompt_eval_count": 961,
+          "eval_count": 232,
+          "total_duration_ms": 33067,
+          "load_duration_ms": 725,
+          "temperature": 0.0,
+          "seed": 42,
+          "wall_ms": 33130
+        }
+      ],
+      "grade": {
+        "decisions": [
+          {
+            "id": "exponential backoff, max 6 retries",
+            "found": true
+          },
+          {
+            "id": "Postgres 16 migration moved to next sprint",
+            "found": true
+          }
+        ],
+        "decisions_forbidden_hit": [],
+        "actions": [
+          {
+            "id": "Kevo implements backoff by Thursday",
+            "task_found": true,
+            "owner_correct": true,
+            "owners_given": [
+              "Kevo",
+              "Jiku"
+            ]
+          },
+          {
+            "id": "Fatuma asks Mercy in finance re sandbox cert",
+            "task_found": true,
+            "owner_correct": true,
+            "owners_given": [
+              "Fatuma Hassan"
+            ]
+          },
+          {
+            "id": "update on-call runbook (nobody took it)",
+            "task_found": true,
+            "owner_correct": false,
+            "owners_given": [
+              "Jiku"
+            ]
+          }
+        ],
+        "actions_forbidden_hit": [],
+        "open_questions": [
+          {
+            "id": "kill old USSD flow?",
+            "found": false
+          }
+        ],
+        "score": 0.778,
+        "points": "7/9 minus 0 reversed/forbidden items"
+      }
+    },
+    {
+      "agent": "meeting-notes-agent",
+      "input": "02-product-sync.md",
+      "mode": "production_t0",
+      "run": 1,
+      "temperature": 0.0,
+      "seed": 42,
+      "status": "completed",
+      "source": "ollama",
+      "valid_contract": true,
+      "contract_errors": [],
+      "attempts": [
+        1
+      ],
+      "chunks": 1,
+      "warnings": [
+        "dropped 1 item(s) copied from the prompt example"
+      ],
+      "latency_ms": 52463,
+      "usage": {
+        "input_tokens": 757,
+        "output_tokens": 293
+      },
+      "output": {
+        "summary": "Product sync - AgentHub local hire pricing & onboarding discussion",
+        "decisions": [
+          "Proposed KES 50 per run for local-hire agents",
+          "Agreed to cap input at 20 pages",
+          "Auto-refund if job fails",
+          "M-Pesa STK push for payment integration",
+          "Estimated support review for auto-refund",
+          "Support team to provide effort estimate by Friday",
+          "Auto-support for Mac at launch",
+          "Purple color scheme to be avoided"
+        ],
+        "action_items": [
+          {
+            "owner": "Nya",
+            "task": "Proposed KES 50 per run for local-hire agents"
+          },
+          {
+            "owner": "Ochi",
+            "task": "Auto-refund if job fails"
+          },
+          {
+            "owner": "Priya",
+            "task": "M-Pesa STK push for payment integration"
+          },
+          {
+            "owner": "Dan",
+            "task": "Estimated support review for auto-refund"
+          },
+          {
+            "owner": "Ge",
+            "task": "Support team to provide effort estimate by Friday"
+          },
+          {
+            "owner": "Ochi",
+            "task": "Auto-support for Mac at launch"
+          }
+        ],
+        "open_questions": []
+      },
+      "error": null,
+      "raw_model_outputs": [
+        "{\"summary\": \"Product sync - AgentHub local hire pricing & onboarding discussion\", \"decisions\": [\"Proposed KES 50 per run for local-hire agents\", \"Agreed to cap input at 20 pages\", \"Auto-refund if job fails\", \"M-Pesa STK push for payment integration\", \"Estimated support review for auto-refund\", \"Support team to provide effort estimate by Friday\", \"Auto-support for Mac at launch\", \"Purple color scheme to be avoided\"], \"action_items\": [{\"owner\": \"Nya\", \"task\": \"Proposed KES 50 per run for local-hire agents\"}, {\"owner\": \"Ochi\", \"task\": \"Auto-refund if job fails\"}, {\"owner\": \"Priya\", \"task\": \"M-Pesa STK push for payment integration\"}, {\"owner\": \"Dan\", \"task\": \"Estimated support review for auto-refund\"}, {\"owner\": \"Ge\", \"task\": \"Support team to provide effort estimate by Friday\"}, {\"owner\": \"Ochi\", \"task\": \"Auto-support for Mac at launch\"}, {\"owner\": \"Priya\", \"task\": \"*Auto-support for Mac at launch*\"}, {\"owner\": \"Nya\", \"task\": \"Auto-refund if job fails\"}, {\"owner\": \"Ge\", \"task\": \"Auto-support for Mac at launch\"}], \"open_questions\": [\"Do we invite the board?\"]}"
+      ],
+      "ollama_calls": [
+        {
+          "prompt_eval_count": 757,
+          "eval_count": 293,
+          "total_duration_ms": 52256,
+          "load_duration_ms": 868,
+          "temperature": 0.0,
+          "seed": 42,
+          "wall_ms": 52315
+        }
+      ],
+      "grade": {
+        "decisions": [
+          {
+            "id": "KES 50 per run with 20-page cap",
+            "found": false
+          },
+          {
+            "id": "refunds only after support review (auto refund reversed)",
+            "found": true
+          }
+        ],
+        "decisions_forbidden_hit": [
+          "reversed: auto refund"
+        ],
+        "actions": [
+          {
+            "id": "Dan mocks up 2-step onboarding by next Wed",
+            "task_found": false,
+            "owner_correct": false,
+            "owners_given": []
+          },
+          {
+            "id": "Priya sends copy tomorrow",
+            "task_found": false,
+            "owner_correct": false,
+            "owners_given": []
+          },
+          {
+            "id": "Ochi's team: Mac effort estimate by Friday",
+            "task_found": true,
+            "owner_correct": true,
+            "owners_given": [
+              "Dan",
+              "Ge",
+              "Ochi"
+            ]
+          },
+          {
+            "id": "write 'why Ollama' FAQ (nobody took it)",
+            "task_found": false,
+            "owner_correct": false,
+            "owners_given": []
+          }
+        ],
+        "actions_forbidden_hit": [],
+        "open_questions": [
+          {
+            "id": "who integrates M-Pesa STK push?",
+            "found": false
+          },
+          {
+            "id": "Mac support at launch?",
+            "found": false
+          }
+        ],
+        "score": 0.167,
+        "points": "3/12 minus 1 reversed/forbidden items"
+      }
+    },
+    {
+      "agent": "meeting-notes-agent",
+      "input": "02-product-sync.md",
+      "mode": "production_t0",
+      "run": 2,
+      "temperature": 0.0,
+      "seed": 42,
+      "status": "completed",
+      "source": "ollama",
+      "valid_contract": true,
+      "contract_errors": [],
+      "attempts": [
+        1
+      ],
+      "chunks": 1,
+      "warnings": [],
+      "latency_ms": 32053,
+      "usage": {
+        "input_tokens": 757,
+        "output_tokens": 228
+      },
+      "output": {
+        "summary": "Product sync - AgentHub local hire pricing & onboarding discussion.",
+        "decisions": [
+          "Proposed KES 50 per run for local-hire agents",
+          "Agreed to cap input at 20 pages",
+          "Auto-refund if job fails",
+          "M-Pesa STK push for payment integration",
+          "Estimated support review for Mac launch",
+          "Auto-refund policy"
+        ],
+        "action_items": [
+          {
+            "owner": "Nya",
+            "task": "Proposed KES 50 per run for local-hire agents"
+          },
+          {
+            "owner": "Ochi",
+            "task": "Auto-refund if job fails"
+          },
+          {
+            "owner": "Priya",
+            "task": "M-Pesa STK push for payment integration"
+          },
+          {
+            "owner": "Dan",
+            "task": "Estimated support review for Mac launch"
+          },
+          {
+            "owner": "Ge",
+            "task": "Auto-refund policy"
+          }
+        ],
+        "open_questions": [
+          "Do we support Mac at launch?"
+        ]
+      },
+      "error": null,
+      "raw_model_outputs": [
+        "{\"summary\": \"Product sync - AgentHub local hire pricing & onboarding discussion.\", \"decisions\": [\"Proposed KES 50 per run for local-hire agents\", \"Agreed to cap input at 20 pages\", \"Auto-refund if job fails\", \"M-Pesa STK push for payment integration\", \"Estimated support review for Mac launch\", \"Auto-refund policy\", \"Estimated support review for Mac launch\", \"Auto-refund policy\"], \"action_items\": [{\"owner\": \"Nya\", \"task\": \"Proposed KES 50 per run for local-hire agents\"}, {\"owner\": \"Ochi\", \"task\": \"Auto-refund if job fails\"}, {\"owner\": \"Priya\", \"task\": \"M-Pesa STK push for payment integration\"}, {\"owner\": \"Dan\", \"task\": \"Estimated support review for Mac launch\"}, {\"owner\": \"Ge\", \"task\": \"Auto-refund policy\"}, {\"owner\": \"Unassigned\", \"task\": \"Estimated support review for Mac launch\"}], \"open_questions\": [\"Do we support Mac at launch?\"]}"
+      ],
+      "ollama_calls": [
+        {
+          "prompt_eval_count": 757,
+          "eval_count": 228,
+          "total_duration_ms": 31737,
+          "load_duration_ms": 915,
+          "temperature": 0.0,
+          "seed": 42,
+          "wall_ms": 31799
+        }
+      ],
+      "grade": {
+        "decisions": [
+          {
+            "id": "KES 50 per run with 20-page cap",
+            "found": false
+          },
+          {
+            "id": "refunds only after support review (auto refund reversed)",
+            "found": false
+          }
+        ],
+        "decisions_forbidden_hit": [
+          "reversed: auto refund"
+        ],
+        "actions": [
+          {
+            "id": "Dan mocks up 2-step onboarding by next Wed",
+            "task_found": false,
+            "owner_correct": false,
+            "owners_given": []
+          },
+          {
+            "id": "Priya sends copy tomorrow",
+            "task_found": false,
+            "owner_correct": false,
+            "owners_given": []
+          },
+          {
+            "id": "Ochi's team: Mac effort estimate by Friday",
+            "task_found": true,
+            "owner_correct": false,
+            "owners_given": [
+              "Dan"
+            ]
+          },
+          {
+            "id": "write 'why Ollama' FAQ (nobody took it)",
+            "task_found": false,
+            "owner_correct": false,
+            "owners_given": []
+          }
+        ],
+        "actions_forbidden_hit": [],
+        "open_questions": [
+          {
+            "id": "who integrates M-Pesa STK push?",
+            "found": false
+          },
+          {
+            "id": "Mac support at launch?",
+            "found": true
+          }
+        ],
+        "score": 0.083,
+        "points": "2/12 minus 1 reversed/forbidden items"
+      }
+    },
+    {
+      "agent": "meeting-notes-agent",
+      "input": "02-product-sync.md",
+      "mode": "production_t0",
+      "run": 3,
+      "temperature": 0.0,
+      "seed": 42,
+      "status": "completed",
+      "source": "ollama",
+      "valid_contract": true,
+      "contract_errors": [],
+      "attempts": [
+        1
+      ],
+      "chunks": 1,
+      "warnings": [],
+      "latency_ms": 32973,
+      "usage": {
+        "input_tokens": 757,
+        "output_tokens": 228
+      },
+      "output": {
+        "summary": "Product sync - AgentHub local hire pricing & onboarding discussion.",
+        "decisions": [
+          "Proposed KES 50 per run for local-hire agents",
+          "Agreed to cap input at 20 pages",
+          "Auto-refund if job fails",
+          "M-Pesa STK push for payment integration",
+          "Estimated support review for Mac launch",
+          "Auto-refund policy"
+        ],
+        "action_items": [
+          {
+            "owner": "Nya",
+            "task": "Proposed KES 50 per run for local-hire agents"
+          },
+          {
+            "owner": "Ochi",
+            "task": "Auto-refund if job fails"
+          },
+          {
+            "owner": "Priya",
+            "task": "M-Pesa STK push for payment integration"
+          },
+          {
+            "owner": "Dan",
+            "task": "Estimated support review for Mac launch"
+          },
+          {
+            "owner": "Ge",
+            "task": "Auto-refund policy"
+          }
+        ],
+        "open_questions": [
+          "Do we support Mac at launch?"
+        ]
+      },
+      "error": null,
+      "raw_model_outputs": [
+        "{\"summary\": \"Product sync - AgentHub local hire pricing & onboarding discussion.\", \"decisions\": [\"Proposed KES 50 per run for local-hire agents\", \"Agreed to cap input at 20 pages\", \"Auto-refund if job fails\", \"M-Pesa STK push for payment integration\", \"Estimated support review for Mac launch\", \"Auto-refund policy\", \"Estimated support review for Mac launch\", \"Auto-refund policy\"], \"action_items\": [{\"owner\": \"Nya\", \"task\": \"Proposed KES 50 per run for local-hire agents\"}, {\"owner\": \"Ochi\", \"task\": \"Auto-refund if job fails\"}, {\"owner\": \"Priya\", \"task\": \"M-Pesa STK push for payment integration\"}, {\"owner\": \"Dan\", \"task\": \"Estimated support review for Mac launch\"}, {\"owner\": \"Ge\", \"task\": \"Auto-refund policy\"}, {\"owner\": \"Unassigned\", \"task\": \"Estimated support review for Mac launch\"}], \"open_questions\": [\"Do we support Mac at launch?\"]}"
+      ],
+      "ollama_calls": [
+        {
+          "prompt_eval_count": 757,
+          "eval_count": 228,
+          "total_duration_ms": 32573,
+          "load_duration_ms": 1537,
+          "temperature": 0.0,
+          "seed": 42,
+          "wall_ms": 32701
+        }
+      ],
+      "grade": {
+        "decisions": [
+          {
+            "id": "KES 50 per run with 20-page cap",
+            "found": false
+          },
+          {
+            "id": "refunds only after support review (auto refund reversed)",
+            "found": false
+          }
+        ],
+        "decisions_forbidden_hit": [
+          "reversed: auto refund"
+        ],
+        "actions": [
+          {
+            "id": "Dan mocks up 2-step onboarding by next Wed",
+            "task_found": false,
+            "owner_correct": false,
+            "owners_given": []
+          },
+          {
+            "id": "Priya sends copy tomorrow",
+            "task_found": false,
+            "owner_correct": false,
+            "owners_given": []
+          },
+          {
+            "id": "Ochi's team: Mac effort estimate by Friday",
+            "task_found": true,
+            "owner_correct": false,
+            "owners_given": [
+              "Dan"
+            ]
+          },
+          {
+            "id": "write 'why Ollama' FAQ (nobody took it)",
+            "task_found": false,
+            "owner_correct": false,
+            "owners_given": []
+          }
+        ],
+        "actions_forbidden_hit": [],
+        "open_questions": [
+          {
+            "id": "who integrates M-Pesa STK push?",
+            "found": false
+          },
+          {
+            "id": "Mac support at launch?",
+            "found": true
+          }
+        ],
+        "score": 0.083,
+        "points": "2/12 minus 1 reversed/forbidden items"
+      }
+    },
+    {
+      "agent": "meeting-notes-agent",
+      "input": "03-client-call-kariuki-logistics.docx",
+      "mode": "production_t0",
+      "run": 1,
+      "temperature": 0.0,
+      "seed": 42,
+      "status": "completed",
+      "source": "ollama",
+      "valid_contract": true,
+      "contract_errors": [],
+      "attempts": [
+        1,
+        1,
+        1
+      ],
+      "chunks": 2,
+      "warnings": [
+        "owner 'Amina' not found in transcript -> Unassigned (task: Call the bakery tomorrow)",
+        "dropped 4 item(s) copied from the prompt example"
+      ],
+      "latency_ms": 118481,
+      "usage": {
+        "input_tokens": 2819,
+        "output_tokens": 365
+      },
+      "output": {
+        "summary": "Meeting on logistics and IT services pilot call resulted in export of OneNote to Word for future reference and compatibility testing.",
+        "decisions": [
+          "Export OneNote to Word"
+        ],
+        "action_items": [
+          {
+            "owner": "Lucy Wairimu",
+            "task": "Ask about exporting to Word"
+          },
+          {
+            "owner": "Achieng Ouma",
+            "task": "Check RAM for Nairobi, Mombasa, and Nakuru PCs"
+          },
+          {
+            "owner": "Mzee Kariuki",
+            "task": "Ask about integrating with SAP"
+          },
+          {
+            "owner": "Ge Wambua",
+            "task": "Check if the model runs fully offline"
+          },
+          {
+            "owner": "Achieng Ouma",
+            "task": "Check SAP integration"
+          },
+          {
+            "owner": "Mzee Kariuki",
+            "task": "Check cloud fallback"
+          }
+        ],
+        "open_questions": [
+          "Does this integrate with SAP?",
+          "Is the model runs fully offline?",
+          "Will the pilot support Swahili voice notes?",
+          "Who pays for RAM upgrades in Eldoret?"
+        ]
+      },
+      "error": null,
+      "raw_model_outputs": [
+        "{\"summary\": \"Pilot call for logistics and IT services.\", \"decisions\": [\"Order 6 cakes for Friday\"], \"action_items\": [{\"owner\": \"Amina\", \"task\": \"Call the bakery tomorrow\"}, {\"owner\": \"Unassigned\", \"task\": \"Book the hall\"}], \"open_questions\": [\"Do we invite the board?\"]}",
+        "{\"summary\": \"Lucy Wairimu asked if OneNote can export to Word.\", \"decisions\": [\"Export OneNote to Word\"], \"action_items\": [{\"owner\": \"Lucy Wairimu\", \"task\": \"Ask about exporting to Word\"}, {\"owner\": \"Achieng Ouma\", \"task\": \"Check RAM for Nairobi, Mombasa, and Nakuru PCs\"}, {\"owner\": \"Mzee Kariuki\", \"task\": \"Ask about integrating with SAP\"}, {\"owner\": \"Ge Wambua\", \"task\": \"Check if the model runs fully offline\"}, {\"owner\": \"Achieng Ouma\", \"task\": \"Check SAP integration\"}, {\"owner\": \"Mzee Kariuki\", \"task\": \"Check cloud fallback\"}, {\"owner\": \"Ge Wambua\", \"task\": \"Check if the model runs fully offline\"}], \"open_questions\": [\"Does this integrate with SAP?\", \"Is the model runs fully offline?\", \"Will the pilot support Swahili voice notes?\", \"Who pays for RAM upgrades in Eldoret?\", \"Will the pilot support voice notes?\", \"Will the pilot support Swahili voice notes?\", \"Will the pilot support voice notes?\", \"Will the pilot support Swahili voice notes?\"]}",
+        "{\"summary\": \"Meeting on logistics and IT services pilot call resulted in export of OneNote to Word for future reference and compatibility testing.\"}"
+      ],
+      "ollama_calls": [
+        {
+          "prompt_eval_count": 1629,
+          "eval_count": 75,
+          "total_duration_ms": 48985,
+          "load_duration_ms": 699,
+          "temperature": 0.0,
+          "seed": 42,
+          "wall_ms": 49049
+        },
+        {
+          "prompt_eval_count": 1108,
+          "eval_count": 261,
+          "total_duration_ms": 59951,
+          "load_duration_ms": 1342,
+          "temperature": 0.0,
+          "seed": 42,
+          "wall_ms": 60051
+        },
+        {
+          "prompt_eval_count": 82,
+          "eval_count": 29,
+          "total_duration_ms": 9132,
+          "load_duration_ms": 2770,
+          "temperature": 0.0,
+          "seed": 42,
+          "wall_ms": 9236
+        }
+      ],
+      "grade": {
+        "decisions": [
+          {
+            "id": "pilot = 3 depots (Nairobi, Mombasa, Nakuru)",
+            "found": false
+          },
+          {
+            "id": "30 days free then KES 50/run",
+            "found": false
+          },
+          {
+            "id": "no cloud LLM fallback",
+            "found": false
+          }
+        ],
+        "decisions_forbidden_hit": [],
+        "actions": [
+          {
+            "id": "Achieng sends pilot agreement draft by Monday",
+            "task_found": false,
+            "owner_correct": false,
+            "owners_given": []
+          },
+          {
+            "id": "Lucy shares depot list + contacts by Wednesday",
+            "task_found": false,
+            "owner_correct": false,
+            "owners_given": []
+          },
+          {
+            "id": "Mzee Kariuki gets IT security / CISO sign-off",
+            "task_found": false,
+            "owner_correct": false,
+            "owners_given": []
+          },
+          {
+            "id": "check depot PCs have 8GB RAM (nobody took it)",
+            "task_found": true,
+            "owner_correct": false,
+            "owners_given": [
+              "Achieng Ouma"
+            ]
+          }
+        ],
+        "actions_forbidden_hit": [],
+        "open_questions": [
+          {
+            "id": "Swahili voice notes support?",
+            "found": true
+          },
+          {
+            "id": "who pays for RAM/hardware upgrades?",
+            "found": true
+          },
+          {
+            "id": "SAP Business One integration?",
+            "found": true
+          }
+        ],
+        "score": 0.286,
+        "points": "4/14 minus 0 reversed/forbidden items"
+      }
+    },
+    {
+      "agent": "meeting-notes-agent",
+      "input": "03-client-call-kariuki-logistics.docx",
+      "mode": "production_t0",
+      "run": 2,
+      "temperature": 0.0,
+      "seed": 42,
+      "status": "completed",
+      "source": "ollama",
+      "valid_contract": true,
+      "contract_errors": [],
+      "attempts": [
+        1,
+        1,
+        1
+      ],
+      "chunks": 2,
+      "warnings": [
+        "owner 'Amina' not found in transcript -> Unassigned (task: Call the bakery tomorrow)",
+        "dropped 4 item(s) copied from the prompt example"
+      ],
+      "latency_ms": 70717,
+      "usage": {
+        "input_tokens": 2853,
+        "output_tokens": 447
+      },
+      "output": {
+        "summary": "{\"topic\": \"Pilot call for logistics and IT services\", \"outcome\": \"Export OneNote to Word and establish local data backup\"}",
+        "decisions": [
+          "Export OneNote to Word",
+          "Not directly integrate with SAP for pilot",
+          "No cloud fallback for local data",
+          "Local data backup requirement"
+        ],
+        "action_items": [
+          {
+            "owner": "Lucy Wairimu",
+            "task": "Ask Achieng Ouma to check RAM for depots"
+          },
+          {
+            "owner": "Achieng Ouma",
+            "task": "Check SAP connector for pilot"
+          },
+          {
+            "owner": "Mzee Kariuki",
+            "task": "Discuss with CISO about IT security sign-off"
+          },
+          {
+            "owner": "Ge Wambua",
+            "task": "Discuss with IT security team about Ollama installation"
+          },
+          {
+            "owner": "Unassigned",
+            "task": "Check if Nairobi, Mombasa, and Nakuru PCs have 8 gigs of RAM"
+          },
+          {
+            "owner": "Unassigned",
+            "task": "Check if SAP connector is ready for full contract"
+          },
+          {
+            "owner": "Unassigned",
+            "task": "Discuss with SAP about local data backup requirement"
+          }
+        ],
+        "open_questions": [
+          "Does this integrate with SAP? Our invoices are all in SAP Business One?",
+          "Will the pilot support Swahili voice notes?",
+          "Who pays for RAM upgrades in Eldoret?",
+          "Will the security team sign off on Ollama before installation?",
+          "Will the SAP connector be ready for full contract?",
+          "Will the pilot support local data backup?"
+        ]
+      },
+      "error": null,
+      "raw_model_outputs": [
+        "{\"summary\": \"Pilot call for logistics and IT services.\", \"decisions\": [\"Order 6 cakes for Friday\"], \"action_items\": [{\"owner\": \"Amina\", \"task\": \"Call the bakery tomorrow\"}, {\"owner\": \"Unassigned\", \"task\": \"Book the hall\"}], \"open_questions\": [\"Do we invite the board?\"]}",
+        "{\"summary\": \"Part 2 of 2: Discussion on OneNote export to Word, integration with SAP, and local data backup.\", \"decisions\": [\"Export OneNote to Word\", \"Not directly integrate with SAP for pilot\", \"No cloud fallback for local data\", \"Local data backup requirement\"], \"action_items\": [{\"owner\": \"Lucy Wairimu\", \"task\": \"Ask Achieng Ouma to check RAM for depots\"}, {\"owner\": \"Achieng Ouma\", \"task\": \"Check SAP connector for pilot\"}, {\"owner\": \"Mzee Kariuki\", \"task\": \"Discuss with CISO about IT security sign-off\"}, {\"owner\": \"Ge Wambua\", \"task\": \"Discuss with IT security team about Ollama installation\"}, {\"owner\": \"Unassigned\", \"task\": \"Check if Nairobi, Mombasa, and Nakuru PCs have 8 gigs of RAM\"}, {\"owner\": \"Unassigned\", \"task\": \"Check if SAP connector is ready for full contract\"}, {\"owner\": \"Unassigned\", \"task\": \"Discuss with SAP about local data backup requirement\"}], \"open_questions\": [\"Does this integrate with SAP? Our invoices are all in SAP Business One?\", \"Will the pilot support Swahili voice notes?\", \"Who pays for RAM upgrades in Eldoret?\", \"Will the security team sign off on Ollama before installation?\", \"Will the SAP connector be ready for full contract?\", \"Will the pilot support local data backup?\", \"Will the security team sign off on Ollama before installation?\", \"Will the SAP connector be ready for full contract?\"]}",
+        "{\n  \"summary\": \"{\\\"topic\\\": \\\"Pilot call for logistics and IT services\\\", \\\"outcome\\\": \\\"Export OneNote to Word and establish local data backup\\\"}\"\n}"
+      ],
+      "ollama_calls": [
+        {
+          "prompt_eval_count": 1629,
+          "eval_count": 75,
+          "total_duration_ms": 13138,
+          "load_duration_ms": 1129,
+          "temperature": 0.0,
+          "seed": 42,
+          "wall_ms": 13199
+        },
+        {
+          "prompt_eval_count": 1108,
+          "eval_count": 336,
+          "total_duration_ms": 49707,
+          "load_duration_ms": 990,
+          "temperature": 0.0,
+          "seed": 42,
+          "wall_ms": 49777
+        },
+        {
+          "prompt_eval_count": 116,
+          "eval_count": 36,
+          "total_duration_ms": 7449,
+          "load_duration_ms": 1250,
+          "temperature": 0.0,
+          "seed": 42,
+          "wall_ms": 7543
+        }
+      ],
+      "grade": {
+        "decisions": [
+          {
+            "id": "pilot = 3 depots (Nairobi, Mombasa, Nakuru)",
+            "found": false
+          },
+          {
+            "id": "30 days free then KES 50/run",
+            "found": false
+          },
+          {
+            "id": "no cloud LLM fallback",
+            "found": true
+          }
+        ],
+        "decisions_forbidden_hit": [],
+        "actions": [
+          {
+            "id": "Achieng sends pilot agreement draft by Monday",
+            "task_found": false,
+            "owner_correct": false,
+            "owners_given": []
+          },
+          {
+            "id": "Lucy shares depot list + contacts by Wednesday",
+            "task_found": true,
+            "owner_correct": true,
+            "owners_given": [
+              "Lucy Wairimu"
+            ]
+          },
+          {
+            "id": "Mzee Kariuki gets IT security / CISO sign-off",
+            "task_found": true,
+            "owner_correct": true,
+            "owners_given": [
+              "Mzee Kariuki",
+              "Ge Wambua"
+            ]
+          },
+          {
+            "id": "check depot PCs have 8GB RAM (nobody took it)",
+            "task_found": true,
+            "owner_correct": true,
+            "owners_given": [
+              "Lucy Wairimu",
+              "Unassigned"
+            ]
+          }
+        ],
+        "actions_forbidden_hit": [],
+        "open_questions": [
+          {
+            "id": "Swahili voice notes support?",
+            "found": true
+          },
+          {
+            "id": "who pays for RAM/hardware upgrades?",
+            "found": true
+          },
+          {
+            "id": "SAP Business One integration?",
+            "found": true
+          }
+        ],
+        "score": 0.714,
+        "points": "10/14 minus 0 reversed/forbidden items"
+      }
+    },
+    {
+      "agent": "meeting-notes-agent",
+      "input": "03-client-call-kariuki-logistics.docx",
+      "mode": "production_t0",
+      "run": 3,
+      "temperature": 0.0,
+      "seed": 42,
+      "status": "completed",
+      "source": "ollama",
+      "valid_contract": true,
+      "contract_errors": [],
+      "attempts": [
+        1,
+        1,
+        1
+      ],
+      "chunks": 2,
+      "warnings": [
+        "owner 'Amina' not found in transcript -> Unassigned (task: Call the bakery tomorrow)",
+        "dropped 4 item(s) copied from the prompt example"
+      ],
+      "latency_ms": 69506,
+      "usage": {
+        "input_tokens": 2853,
+        "output_tokens": 447
+      },
+      "output": {
+        "summary": "{\"topic\": \"Pilot call for logistics and IT services\", \"outcome\": \"Export OneNote to Word and establish local data backup\"}",
+        "decisions": [
+          "Export OneNote to Word",
+          "Not directly integrate with SAP for pilot",
+          "No cloud fallback for local data",
+          "Local data backup requirement"
+        ],
+        "action_items": [
+          {
+            "owner": "Lucy Wairimu",
+            "task": "Ask Achieng Ouma to check RAM for depots"
+          },
+          {
+            "owner": "Achieng Ouma",
+            "task": "Check SAP connector for pilot"
+          },
+          {
+            "owner": "Mzee Kariuki",
+            "task": "Discuss with CISO about IT security sign-off"
+          },
+          {
+            "owner": "Ge Wambua",
+            "task": "Discuss with IT security team about Ollama installation"
+          },
+          {
+            "owner": "Unassigned",
+            "task": "Check if Nairobi, Mombasa, and Nakuru PCs have 8 gigs of RAM"
+          },
+          {
+            "owner": "Unassigned",
+            "task": "Check if SAP connector is ready for full contract"
+          },
+          {
+            "owner": "Unassigned",
+            "task": "Discuss with SAP about local data backup requirement"
+          }
+        ],
+        "open_questions": [
+          "Does this integrate with SAP? Our invoices are all in SAP Business One?",
+          "Will the pilot support Swahili voice notes?",
+          "Who pays for RAM upgrades in Eldoret?",
+          "Will the security team sign off on Ollama before installation?",
+          "Will the SAP connector be ready for full contract?",
+          "Will the pilot support local data backup?"
+        ]
+      },
+      "error": null,
+      "raw_model_outputs": [
+        "{\"summary\": \"Pilot call for logistics and IT services.\", \"decisions\": [\"Order 6 cakes for Friday\"], \"action_items\": [{\"owner\": \"Amina\", \"task\": \"Call the bakery tomorrow\"}, {\"owner\": \"Unassigned\", \"task\": \"Book the hall\"}], \"open_questions\": [\"Do we invite the board?\"]}",
+        "{\"summary\": \"Part 2 of 2: Discussion on OneNote export to Word, integration with SAP, and local data backup.\", \"decisions\": [\"Export OneNote to Word\", \"Not directly integrate with SAP for pilot\", \"No cloud fallback for local data\", \"Local data backup requirement\"], \"action_items\": [{\"owner\": \"Lucy Wairimu\", \"task\": \"Ask Achieng Ouma to check RAM for depots\"}, {\"owner\": \"Achieng Ouma\", \"task\": \"Check SAP connector for pilot\"}, {\"owner\": \"Mzee Kariuki\", \"task\": \"Discuss with CISO about IT security sign-off\"}, {\"owner\": \"Ge Wambua\", \"task\": \"Discuss with IT security team about Ollama installation\"}, {\"owner\": \"Unassigned\", \"task\": \"Check if Nairobi, Mombasa, and Nakuru PCs have 8 gigs of RAM\"}, {\"owner\": \"Unassigned\", \"task\": \"Check if SAP connector is ready for full contract\"}, {\"owner\": \"Unassigned\", \"task\": \"Discuss with SAP about local data backup requirement\"}], \"open_questions\": [\"Does this integrate with SAP? Our invoices are all in SAP Business One?\", \"Will the pilot support Swahili voice notes?\", \"Who pays for RAM upgrades in Eldoret?\", \"Will the security team sign off on Ollama before installation?\", \"Will the SAP connector be ready for full contract?\", \"Will the pilot support local data backup?\", \"Will the security team sign off on Ollama before installation?\", \"Will the SAP connector be ready for full contract?\"]}",
+        "{\n  \"summary\": \"{\\\"topic\\\": \\\"Pilot call for logistics and IT services\\\", \\\"outcome\\\": \\\"Export OneNote to Word and establish local data backup\\\"}\"\n}"
+      ],
+      "ollama_calls": [
+        {
+          "prompt_eval_count": 1629,
+          "eval_count": 75,
+          "total_duration_ms": 12767,
+          "load_duration_ms": 889,
+          "temperature": 0.0,
+          "seed": 42,
+          "wall_ms": 12826
+        },
+        {
+          "prompt_eval_count": 1108,
+          "eval_count": 336,
+          "total_duration_ms": 50352,
+          "load_duration_ms": 849,
+          "temperature": 0.0,
+          "seed": 42,
+          "wall_ms": 50424
+        },
+        {
+          "prompt_eval_count": 116,
+          "eval_count": 36,
+          "total_duration_ms": 5893,
+          "load_duration_ms": 1176,
+          "temperature": 0.0,
+          "seed": 42,
+          "wall_ms": 6018
+        }
+      ],
+      "grade": {
+        "decisions": [
+          {
+            "id": "pilot = 3 depots (Nairobi, Mombasa, Nakuru)",
+            "found": false
+          },
+          {
+            "id": "30 days free then KES 50/run",
+            "found": false
+          },
+          {
+            "id": "no cloud LLM fallback",
+            "found": true
+          }
+        ],
+        "decisions_forbidden_hit": [],
+        "actions": [
+          {
+            "id": "Achieng sends pilot agreement draft by Monday",
+            "task_found": false,
+            "owner_correct": false,
+            "owners_given": []
+          },
+          {
+            "id": "Lucy shares depot list + contacts by Wednesday",
+            "task_found": true,
+            "owner_correct": true,
+            "owners_given": [
+              "Lucy Wairimu"
+            ]
+          },
+          {
+            "id": "Mzee Kariuki gets IT security / CISO sign-off",
+            "task_found": true,
+            "owner_correct": true,
+            "owners_given": [
+              "Mzee Kariuki",
+              "Ge Wambua"
+            ]
+          },
+          {
+            "id": "check depot PCs have 8GB RAM (nobody took it)",
+            "task_found": true,
+            "owner_correct": true,
+            "owners_given": [
+              "Lucy Wairimu",
+              "Unassigned"
+            ]
+          }
+        ],
+        "actions_forbidden_hit": [],
+        "open_questions": [
+          {
+            "id": "Swahili voice notes support?",
+            "found": true
+          },
+          {
+            "id": "who pays for RAM/hardware upgrades?",
+            "found": true
+          },
+          {
+            "id": "SAP Business One integration?",
+            "found": true
+          }
+        ],
+        "score": 0.714,
+        "points": "10/14 minus 0 reversed/forbidden items"
+      }
+    },
+    {
+      "agent": "meeting-notes-agent",
+      "input": "01-payouts-standup.txt",
+      "mode": "stress_t0.7",
+      "run": 1,
+      "temperature": 0.7,
+      "seed": 101,
+      "status": "completed",
+      "source": "ollama",
+      "valid_contract": true,
+      "contract_errors": [],
+      "attempts": [
+        1
+      ],
+      "chunks": 1,
+      "warnings": [
+        "dropped 1 item(s) copied from the prompt example"
+      ],
+      "latency_ms": 38433,
+      "usage": {
+        "input_tokens": 961,
+        "output_tokens": 262
+      },
+      "output": {
+        "summary": "The payout retries were agreed to with exponential backoff and a maximum of 6 tries. The dashboard migration to Postgres 16 was decided to be done this Friday night after the Equity bank demo.",
+        "decisions": [
+          "Exponential backoff with maximum 6 tries",
+          "Dashboard migration to Postgres 16 to be done this Friday night"
+        ],
+        "action_items": [
+          {
+            "owner": "Brian Otieno",
+            "task": "Update on-call runbook for new backoff"
+          },
+          {
+            "owner": "Fatuma Hassan",
+            "task": "Update the on-call runbook for the new backoff and ask Mercy in finance to update the Daraja sandbox cert"
+          },
+          {
+            "owner": "Kevo",
+            "task": "Get usage numbers from Kevo's analytics before deciding on the old USSD flow or killing it"
+          },
+          {
+            "owner": "Jiku",
+            "task": "Update the dashboard migration to Postgres 16 to include Friday night as a plan"
+          }
+        ],
+        "open_questions": [
+          "Do we still need the old USSD flow or can we kill it?",
+          "Who's paying for the sandbox renewal?",
+          "Parking the old USSD flow?",
+          "Usage numbers for Kevo's analytics?",
+          "Nitamuliza leo (when?)"
+        ]
+      },
+      "error": null,
+      "raw_model_outputs": [
+        "{\"summary\": \"The payout retries were agreed to with exponential backoff and a maximum of 6 tries. The dashboard migration to Postgres 16 was decided to be done this Friday night after the Equity bank demo.\", \"decisions\": [\"Exponential backoff with maximum 6 tries\", \"Dashboard migration to Postgres 16 to be done this Friday night\"], \"action_items\": [{\"owner\": \"Brian Otieno\", \"task\": \"Update on-call runbook for new backoff\"}, {\"owner\": \"Fatuma Hassan\", \"task\": \"Update the on-call runbook for the new backoff and ask Mercy in finance to update the Daraja sandbox cert\"}, {\"owner\": \"Kevo\", \"task\": \"Get usage numbers from Kevo's analytics before deciding on the old USSD flow or killing it\"}, {\"owner\": \"Jiku\", \"task\": \"Update the dashboard migration to Postgres 16 to include Friday night as a plan\"}], \"open_questions\": [\"Do we still need the old USSD flow or can we kill it?\", \"Who's paying for the sandbox renewal?\", \"Do we invite the board?\", \"Parking the old USSD flow?\", \"Usage numbers for Kevo's analytics?\", \"Nitamuliza leo (when?)\"]}"
+      ],
+      "ollama_calls": [
+        {
+          "prompt_eval_count": 961,
+          "eval_count": 262,
+          "total_duration_ms": 38147,
+          "load_duration_ms": 722,
+          "temperature": 0.7,
+          "seed": 101,
+          "wall_ms": 38202
+        }
+      ],
+      "grade": {
+        "decisions": [
+          {
+            "id": "exponential backoff, max 6 retries",
+            "found": true
+          },
+          {
+            "id": "Postgres 16 migration moved to next sprint",
+            "found": false
+          }
+        ],
+        "decisions_forbidden_hit": [
+          "reversed: migrate Friday night"
+        ],
+        "actions": [
+          {
+            "id": "Kevo implements backoff by Thursday",
+            "task_found": true,
+            "owner_correct": false,
+            "owners_given": [
+              "Brian Otieno",
+              "Fatuma Hassan"
+            ]
+          },
+          {
+            "id": "Fatuma asks Mercy in finance re sandbox cert",
+            "task_found": true,
+            "owner_correct": true,
+            "owners_given": [
+              "Fatuma Hassan"
+            ]
+          },
+          {
+            "id": "update on-call runbook (nobody took it)",
+            "task_found": true,
+            "owner_correct": false,
+            "owners_given": [
+              "Brian Otieno",
+              "Fatuma Hassan"
+            ]
+          }
+        ],
+        "actions_forbidden_hit": [
+          "reversed: Brian babysits Friday-night migration"
+        ],
+        "open_questions": [
+          {
+            "id": "kill old USSD flow?",
+            "found": true
+          }
+        ],
+        "score": 0.444,
+        "points": "6/9 minus 2 reversed/forbidden items"
+      }
+    },
+    {
+      "agent": "meeting-notes-agent",
+      "input": "01-payouts-standup.txt",
+      "mode": "stress_t0.7",
+      "run": 2,
+      "temperature": 0.7,
+      "seed": 202,
+      "status": "completed",
+      "source": "ollama",
+      "valid_contract": true,
+      "contract_errors": [],
+      "attempts": [
+        1
+      ],
+      "chunks": 1,
+      "warnings": [],
+      "latency_ms": 29879,
+      "usage": {
+        "input_tokens": 961,
+        "output_tokens": 203
+      },
+      "output": {
+        "summary": "Payouts squad discuss payout retries, dashboard migration to Postgres 16, and a discussion about the sandbox renewal.",
+        "decisions": [
+          "Exponential backoff with max 6 tries, no 5 min retry",
+          "Move Postgres 16 to next sprint instead of this sprint",
+          "Update on-call runbook for new backoff",
+          "Not sure who's paying for Daraja sandbox renewal",
+          "Parking the old USSD flow",
+          "Get usage numbers from Kevo's analytics first",
+          "Don't kill the USSD flow"
+        ],
+        "action_items": [
+          {
+            "owner": "Brian Otieno",
+            "task": "Implement exponential backoff with max 6 tries, no 5 min retry"
+          },
+          {
+            "owner": "Kevo",
+            "task": "Write the backoff thing"
+          }
+        ],
+        "open_questions": [
+          "Who's paying for the sandbox renewal?",
+          "Do we still need the old USSD flow?"
+        ]
+      },
+      "error": null,
+      "raw_model_outputs": [
+        "{\"summary\": \"Payouts squad discuss payout retries, dashboard migration to Postgres 16, and a discussion about the sandbox renewal.\", \"decisions\": [\"Exponential backoff with max 6 tries, no 5 min retry\", \"Move Postgres 16 to next sprint instead of this sprint\", \"Update on-call runbook for new backoff\", \"Not sure who's paying for Daraja sandbox renewal\", \"Parking the old USSD flow\", \"Get usage numbers from Kevo's analytics first\", \"Don't kill the USSD flow\", \"Get usage numbers from Kevo's analytics first\"], \"action_items\": [{\"owner\": \"Brian Otieno\", \"task\": \"Implement exponential backoff with max 6 tries, no 5 min retry\"}, {\"owner\": \"Kevo\", \"task\": \"Write the backoff thing\"}], \"open_questions\": [\"Who's paying for the sandbox renewal?\", \"Do we still need the old USSD flow?\"]}"
+      ],
+      "ollama_calls": [
+        {
+          "prompt_eval_count": 961,
+          "eval_count": 203,
+          "total_duration_ms": 29567,
+          "load_duration_ms": 984,
+          "temperature": 0.7,
+          "seed": 202,
+          "wall_ms": 29630
+        }
+      ],
+      "grade": {
+        "decisions": [
+          {
+            "id": "exponential backoff, max 6 retries",
+            "found": true
+          },
+          {
+            "id": "Postgres 16 migration moved to next sprint",
+            "found": true
+          }
+        ],
+        "decisions_forbidden_hit": [],
+        "actions": [
+          {
+            "id": "Kevo implements backoff by Thursday",
+            "task_found": true,
+            "owner_correct": true,
+            "owners_given": [
+              "Brian Otieno",
+              "Kevo"
+            ]
+          },
+          {
+            "id": "Fatuma asks Mercy in finance re sandbox cert",
+            "task_found": false,
+            "owner_correct": false,
+            "owners_given": []
+          },
+          {
+            "id": "update on-call runbook (nobody took it)",
+            "task_found": false,
+            "owner_correct": false,
+            "owners_given": []
+          }
+        ],
+        "actions_forbidden_hit": [],
+        "open_questions": [
+          {
+            "id": "kill old USSD flow?",
+            "found": true
+          }
+        ],
+        "score": 0.556,
+        "points": "5/9 minus 0 reversed/forbidden items"
+      }
+    },
+    {
+      "agent": "meeting-notes-agent",
+      "input": "01-payouts-standup.txt",
+      "mode": "stress_t0.7",
+      "run": 3,
+      "temperature": 0.7,
+      "seed": 303,
+      "status": "completed",
+      "source": "ollama",
+      "valid_contract": true,
+      "contract_errors": [],
+      "attempts": [
+        1
+      ],
+      "chunks": 1,
+      "warnings": [
+        "dropped 1 item(s) copied from the prompt example"
+      ],
+      "latency_ms": 39145,
+      "usage": {
+        "input_tokens": 961,
+        "output_tokens": 256
+      },
+      "output": {
+        "summary": "Discussion on payouts and dashboard migration to Postgres 16.",
+        "decisions": [
+          "Exponential backoff, max 6 tries, not the 5 min thing.",
+          "Move Postgres 16 to next sprint, not this one.",
+          "Update on-call runbook for new backoff.",
+          "Kill USSD flow (if Daraja sandbox cert expires on 14th)",
+          "Use Kevo's analytics for parking usage numbers.",
+          "Examine usage numbers before deciding on new USSD flow.",
+          "Move payouts to Friday night after Equity bank demo.",
+          "No migrations this sprint at all, prioritize demo."
+        ],
+        "action_items": [
+          {
+            "owner": "Kevo",
+            "task": "Write backoff documentation"
+          },
+          {
+            "owner": "Fatuma Hassan",
+            "task": "Update on-call runbook for new backoff"
+          },
+          {
+            "owner": "Unassigned",
+            "task": "Examine usage numbers before deciding on new USSD flow"
+          },
+          {
+            "owner": "Unassigned",
+            "task": "Kill USSD flow (if Daraja sandbox cert expires on 14th)"
+          },
+          {
+            "owner": "Unassigned",
+            "task": "Use Kevo's analytics for parking usage numbers"
+          }
+        ],
+        "open_questions": []
+      },
+      "error": null,
+      "raw_model_outputs": [
+        "{\"summary\": \"Discussion on payouts and dashboard migration to Postgres 16.\", \"decisions\": [\"Exponential backoff, max 6 tries, not the 5 min thing.\", \"Move Postgres 16 to next sprint, not this one.\", \"Update on-call runbook for new backoff.\", \"Kill USSD flow (if Daraja sandbox cert expires on 14th)\", \"Use Kevo's analytics for parking usage numbers.\", \"Examine usage numbers before deciding on new USSD flow.\", \"Move payouts to Friday night after Equity bank demo.\", \"No migrations this sprint at all, prioritize demo.\"], \"action_items\": [{\"owner\": \"Kevo\", \"task\": \"Write backoff documentation\"}, {\"owner\": \"Fatuma Hassan\", \"task\": \"Update on-call runbook for new backoff\"}, {\"owner\": \"Unassigned\", \"task\": \"Examine usage numbers before deciding on new USSD flow\"}, {\"owner\": \"Unassigned\", \"task\": \"Kill USSD flow (if Daraja sandbox cert expires on 14th)\"}, {\"owner\": \"Unassigned\", \"task\": \"Use Kevo's analytics for parking usage numbers\"}], \"open_questions\": [\"Do we invite the board?\"]}"
+      ],
+      "ollama_calls": [
+        {
+          "prompt_eval_count": 961,
+          "eval_count": 256,
+          "total_duration_ms": 38740,
+          "load_duration_ms": 2436,
+          "temperature": 0.7,
+          "seed": 303,
+          "wall_ms": 38805
+        }
+      ],
+      "grade": {
+        "decisions": [
+          {
+            "id": "exponential backoff, max 6 retries",
+            "found": true
+          },
+          {
+            "id": "Postgres 16 migration moved to next sprint",
+            "found": true
+          }
+        ],
+        "decisions_forbidden_hit": [
+          "reversed: migrate Friday night"
+        ],
+        "actions": [
+          {
+            "id": "Kevo implements backoff by Thursday",
+            "task_found": true,
+            "owner_correct": true,
+            "owners_given": [
+              "Kevo",
+              "Fatuma Hassan"
+            ]
+          },
+          {
+            "id": "Fatuma asks Mercy in finance re sandbox cert",
+            "task_found": true,
+            "owner_correct": false,
+            "owners_given": [
+              "Unassigned"
+            ]
+          },
+          {
+            "id": "update on-call runbook (nobody took it)",
+            "task_found": true,
+            "owner_correct": false,
+            "owners_given": [
+              "Fatuma Hassan"
+            ]
+          }
+        ],
+        "actions_forbidden_hit": [],
+        "open_questions": [
+          {
+            "id": "kill old USSD flow?",
+            "found": false
+          }
+        ],
+        "score": 0.556,
+        "points": "6/9 minus 1 reversed/forbidden items"
+      }
+    },
+    {
+      "agent": "meeting-notes-agent",
+      "input": "02-product-sync.md",
+      "mode": "stress_t0.7",
+      "run": 1,
+      "temperature": 0.7,
+      "seed": 101,
+      "status": "completed",
+      "source": "ollama",
+      "valid_contract": true,
+      "contract_errors": [],
+      "attempts": [
+        1
+      ],
+      "chunks": 1,
+      "warnings": [],
+      "latency_ms": 39289,
+      "usage": {
+        "input_tokens": 757,
+        "output_tokens": 259
+      },
+      "output": {
+        "summary": "Product sync - AgentHub local hire pricing & onboarding (Tuesday)",
+        "decisions": [
+          "Proposed KES 50 per run flat",
+          "Auto refund if job fails",
+          "Refund only after support review"
+        ],
+        "action_items": [
+          {
+            "owner": "Nya",
+            "task": "Confirm pricing for local-hire agents"
+          },
+          {
+            "owner": "Ochi",
+            "task": "Negotiate per-page pricing"
+          },
+          {
+            "owner": "Priya",
+            "task": "Update onboarding screen"
+          },
+          {
+            "owner": "Dan",
+            "task": "Mock up onboarding screen"
+          },
+          {
+            "owner": "Priya",
+            "task": "Send copy of onboarding screen to Priya"
+          },
+          {
+            "owner": "Ochi",
+            "task": "Discuss refunds"
+          },
+          {
+            "owner": "Ge",
+            "task": "Update FAQ for Ollama"
+          },
+          {
+            "owner": "Ge",
+            "task": "Estimate support efforts for Mac launch"
+          }
+        ],
+        "open_questions": [
+          "Do we support Mac at launch?"
+        ]
+      },
+      "error": null,
+      "raw_model_outputs": [
+        "{\n  \"summary\": \"Product sync - AgentHub local hire pricing & onboarding (Tuesday)\",\n  \"decisions\": [\"Proposed KES 50 per run flat\", \"Auto refund if job fails\", \"Refund only after support review\"],\n  \"action_items\": [\n    {\"owner\": \"Nya\", \"task\": \"Confirm pricing for local-hire agents\"},\n    {\"owner\": \"Ochi\", \"task\": \"Negotiate per-page pricing\"},\n    {\"owner\": \"Priya\", \"task\": \"Update onboarding screen\"},\n    {\"owner\": \"Dan\", \"task\": \"Mock up onboarding screen\"},\n    {\"owner\": \"Priya\", \"task\": \"Send copy of onboarding screen to Priya\"},\n    {\"owner\": \"Ochi\", \"task\": \"Discuss refunds\"},\n    {\"owner\": \"Ge\", \"task\": \"Update FAQ for Ollama\"},\n    {\"owner\": \"Dan\", \"task\": \"Write FAQ for Ollama\"},\n    {\"owner\": \"Ge\", \"task\": \"Estimate support efforts for Mac launch\"},\n    {\"owner\": \"Ochi\", \"task\": \"Provide estimate for Mac support efforts\"}\n  ],\n  \"open_questions\": [\"Do we support Mac at launch?\"]\n}"
+      ],
+      "ollama_calls": [
+        {
+          "prompt_eval_count": 757,
+          "eval_count": 259,
+          "total_duration_ms": 38885,
+          "load_duration_ms": 3228,
+          "temperature": 0.7,
+          "seed": 101,
+          "wall_ms": 39052
+        }
+      ],
+      "grade": {
+        "decisions": [
+          {
+            "id": "KES 50 per run with 20-page cap",
+            "found": false
+          },
+          {
+            "id": "refunds only after support review (auto refund reversed)",
+            "found": true
+          }
+        ],
+        "decisions_forbidden_hit": [
+          "reversed: auto refund"
+        ],
+        "actions": [
+          {
+            "id": "Dan mocks up 2-step onboarding by next Wed",
+            "task_found": true,
+            "owner_correct": true,
+            "owners_given": [
+              "Priya",
+              "Dan",
+              "Priya"
+            ]
+          },
+          {
+            "id": "Priya sends copy tomorrow",
+            "task_found": true,
+            "owner_correct": true,
+            "owners_given": [
+              "Priya"
+            ]
+          },
+          {
+            "id": "Ochi's team: Mac effort estimate by Friday",
+            "task_found": true,
+            "owner_correct": false,
+            "owners_given": [
+              "Ge"
+            ]
+          },
+          {
+            "id": "write 'why Ollama' FAQ (nobody took it)",
+            "task_found": true,
+            "owner_correct": false,
+            "owners_given": [
+              "Ge"
+            ]
+          }
+        ],
+        "actions_forbidden_hit": [],
+        "open_questions": [
+          {
+            "id": "who integrates M-Pesa STK push?",
+            "found": false
+          },
+          {
+            "id": "Mac support at launch?",
+            "found": true
+          }
+        ],
+        "score": 0.583,
+        "points": "8/12 minus 1 reversed/forbidden items"
+      }
+    },
+    {
+      "agent": "meeting-notes-agent",
+      "input": "02-product-sync.md",
+      "mode": "stress_t0.7",
+      "run": 2,
+      "temperature": 0.7,
+      "seed": 202,
+      "status": "completed",
+      "source": "ollama",
+      "valid_contract": true,
+      "contract_errors": [],
+      "attempts": [
+        1
+      ],
+      "chunks": 1,
+      "warnings": [
+        "dropped 1 item(s) copied from the prompt example"
+      ],
+      "latency_ms": 45045,
+      "usage": {
+        "input_tokens": 757,
+        "output_tokens": 303
+      },
+      "output": {
+        "summary": "Product sync - AgentHub local hire pricing & onboarding (tue)",
+        "decisions": [
+          "Pricng for local-hire agents - proposing KES 50/run flat",
+          "Per page pricing - per run cap at 20 pages",
+          "Auto refund if job fails",
+          "M-Pesa STK push for payment",
+          "Support review required for refund",
+          "Mac support at launch - effort estimate from Ochi's team",
+          "Purple theme color - avoid using again"
+        ],
+        "action_items": [
+          {
+            "owner": "Nya",
+            "task": "Pricng for local-hire agents - proposing KES 50/run flat"
+          },
+          {
+            "owner": "Unassigned",
+            "task": "Auto refund if job fails"
+          },
+          {
+            "owner": "Unassigned",
+            "task": "M-Pesa STK push for payment"
+          },
+          {
+            "owner": "Unassigned",
+            "task": "Support review required for refund"
+          },
+          {
+            "owner": "Unassigned",
+            "task": "Onboarding screen: 3 steps -> merge into 2?"
+          },
+          {
+            "owner": "Unassigned",
+            "task": "Mac support at launch - effort estimate from Ochi's team"
+          },
+          {
+            "owner": "Priya",
+            "task": "Purple theme color - avoid using again"
+          },
+          {
+            "owner": "Unassigned",
+            "task": "Write FAQ for Ollama support"
+          }
+        ],
+        "open_questions": [
+          "Onboarding screen: 3 steps -> merge into 2?"
+        ]
+      },
+      "error": null,
+      "raw_model_outputs": [
+        "{\"summary\": \"Product sync - AgentHub local hire pricing & onboarding (tue)\", \"decisions\": [\"Pricng for local-hire agents - proposing KES 50/run flat\", \"Per page pricing - per run cap at 20 pages\", \"Onboarding screen: 3 steps -> merge into 2?\", \"Auto refund if job fails\", \"M-Pesa STK push for payment\", \"Support review required for refund\", \"Mac support at launch - effort estimate from Ochi's team\", \"Purple theme color - avoid using again\"], \"action_items\": [{\"owner\": \"Nya\", \"task\": \"Pricng for local-hire agents - proposing KES 50/run flat\"}, {\"owner\": \"Unassigned\", \"task\": \"Auto refund if job fails\"}, {\"owner\": \"Unassigned\", \"task\": \"M-Pesa STK push for payment\"}, {\"owner\": \"Unassigned\", \"task\": \"Support review required for refund\"}, {\"owner\": \"Unassigned\", \"task\": \"Onboarding screen: 3 steps -> merge into 2?\"}, {\"owner\": \"Unassigned\", \"task\": \"Mac support at launch - effort estimate from Ochi's team\"}, {\"owner\": \"Priya\", \"task\": \"Purple theme color - avoid using again\"}, {\"owner\": \"Unassigned\", \"task\": \"Write FAQ for Ollama support\"}], \"open_questions\": [\"Do we invite the board?\"]}"
+      ],
+      "ollama_calls": [
+        {
+          "prompt_eval_count": 757,
+          "eval_count": 303,
+          "total_duration_ms": 44431,
+          "load_duration_ms": 2620,
+          "temperature": 0.7,
+          "seed": 202,
+          "wall_ms": 44494
+        }
+      ],
+      "grade": {
+        "decisions": [
+          {
+            "id": "KES 50 per run with 20-page cap",
+            "found": false
+          },
+          {
+            "id": "refunds only after support review (auto refund reversed)",
+            "found": true
+          }
+        ],
+        "decisions_forbidden_hit": [
+          "reversed: auto refund",
+          "rejected: per-page pricing"
+        ],
+        "actions": [
+          {
+            "id": "Dan mocks up 2-step onboarding by next Wed",
+            "task_found": true,
+            "owner_correct": false,
+            "owners_given": [
+              "Unassigned"
+            ]
+          },
+          {
+            "id": "Priya sends copy tomorrow",
+            "task_found": false,
+            "owner_correct": false,
+            "owners_given": []
+          },
+          {
+            "id": "Ochi's team: Mac effort estimate by Friday",
+            "task_found": true,
+            "owner_correct": false,
+            "owners_given": [
+              "Unassigned"
+            ]
+          },
+          {
+            "id": "write 'why Ollama' FAQ (nobody took it)",
+            "task_found": true,
+            "owner_correct": true,
+            "owners_given": [
+              "Unassigned"
+            ]
+          }
+        ],
+        "actions_forbidden_hit": [],
+        "open_questions": [
+          {
+            "id": "who integrates M-Pesa STK push?",
+            "found": false
+          },
+          {
+            "id": "Mac support at launch?",
+            "found": false
+          }
+        ],
+        "score": 0.25,
+        "points": "5/12 minus 2 reversed/forbidden items"
+      }
+    },
+    {
+      "agent": "meeting-notes-agent",
+      "input": "02-product-sync.md",
+      "mode": "stress_t0.7",
+      "run": 3,
+      "temperature": 0.7,
+      "seed": 303,
+      "status": "completed",
+      "source": "ollama",
+      "valid_contract": true,
+      "contract_errors": [],
+      "attempts": [
+        1
+      ],
+      "chunks": 1,
+      "warnings": [
+        "dropped 1 item(s) copied from the prompt example"
+      ],
+      "latency_ms": 46888,
+      "usage": {
+        "input_tokens": 757,
+        "output_tokens": 311
+      },
+      "output": {
+        "summary": "Discussed pricing for local-hire agents and onboarding process.",
+        "decisions": [
+          "Proposed KES 50 per run for pricing",
+          "Agreed to cap input at 20 pages",
+          "Auto-refund to local model if job fails",
+          "M-Pesa STK push for payment integration",
+          "Ongoing work: writing FAQ for 'why does it need Ollama / what is Ollama'",
+          "Ongoing work: estimate effort for Ochi's team to support Mac at launch"
+        ],
+        "action_items": [
+          {
+            "owner": "Ge",
+            "task": "Auto-refund to local model if job fails"
+          },
+          {
+            "owner": "Dan",
+            "task": "Write FAQ for 'why does it need Ollama / what is Ollama'"
+          },
+          {
+            "owner": "Ochi",
+            "task": "Estimate effort for Mac at launch"
+          },
+          {
+            "owner": "Priya",
+            "task": "Send M-Pesa STK push for payment copy to Nyambura"
+          }
+        ],
+        "open_questions": [
+          "Who's integrating M-Pesa STK push?",
+          "Do we support Mac at launch?",
+          "When is the next sync?",
+          "How will Ollama's support be handled?",
+          "What is M-Pesa STK?",
+          "Why does it need Ollama?",
+          "What is Ollama?"
+        ]
+      },
+      "error": null,
+      "raw_model_outputs": [
+        "{\"summary\": \"Discussed pricing for local-hire agents and onboarding process.\", \"decisions\": [\"Proposed KES 50 per run for pricing\", \"Agreed to cap input at 20 pages\", \"Auto-refund to local model if job fails\", \"M-Pesa STK push for payment integration\", \"Ongoing work: writing FAQ for 'why does it need Ollama / what is Ollama'\", \"Ongoing work: estimate effort for Ochi's team to support Mac at launch\", \"Ongoing work: estimate effort for Ochi's team to support Mac at launch\", \"Auto-refund to local model if job fails\"], \"action_items\": [{\"owner\": \"Ge\", \"task\": \"Auto-refund to local model if job fails\"}, {\"owner\": \"Dan\", \"task\": \"Write FAQ for 'why does it need Ollama / what is Ollama'\"}, {\"owner\": \"Ochi\", \"task\": \"Estimate effort for Mac at launch\"}, {\"owner\": \"Priya\", \"task\": \"Send M-Pesa STK push for payment copy to Nyambura\"}], \"open_questions\": [\"Do we invite the board?\", \"Who's integrating M-Pesa STK push?\", \"Do we support Mac at launch?\", \"When is the next sync?\", \"How will Ollama's support be handled?\", \"What is M-Pesa STK?\", \"Why does it need Ollama?\", \"What is Ollama?\"]}"
+      ],
+      "ollama_calls": [
+        {
+          "prompt_eval_count": 757,
+          "eval_count": 311,
+          "total_duration_ms": 46320,
+          "load_duration_ms": 3496,
+          "temperature": 0.7,
+          "seed": 303,
+          "wall_ms": 46439
+        }
+      ],
+      "grade": {
+        "decisions": [
+          {
+            "id": "KES 50 per run with 20-page cap",
+            "found": false
+          },
+          {
+            "id": "refunds only after support review (auto refund reversed)",
+            "found": false
+          }
+        ],
+        "decisions_forbidden_hit": [
+          "reversed: auto refund"
+        ],
+        "actions": [
+          {
+            "id": "Dan mocks up 2-step onboarding by next Wed",
+            "task_found": false,
+            "owner_correct": false,
+            "owners_given": []
+          },
+          {
+            "id": "Priya sends copy tomorrow",
+            "task_found": true,
+            "owner_correct": true,
+            "owners_given": [
+              "Priya"
+            ]
+          },
+          {
+            "id": "Ochi's team: Mac effort estimate by Friday",
+            "task_found": true,
+            "owner_correct": true,
+            "owners_given": [
+              "Ochi"
+            ]
+          },
+          {
+            "id": "write 'why Ollama' FAQ (nobody took it)",
+            "task_found": true,
+            "owner_correct": false,
+            "owners_given": [
+              "Dan"
+            ]
+          }
+        ],
+        "actions_forbidden_hit": [],
+        "open_questions": [
+          {
+            "id": "who integrates M-Pesa STK push?",
+            "found": true
+          },
+          {
+            "id": "Mac support at launch?",
+            "found": true
+          }
+        ],
+        "score": 0.5,
+        "points": "7/12 minus 1 reversed/forbidden items"
+      }
+    },
+    {
+      "agent": "meeting-notes-agent",
+      "input": "03-client-call-kariuki-logistics.docx",
+      "mode": "stress_t0.7",
+      "run": 1,
+      "temperature": 0.7,
+      "seed": 101,
+      "status": "completed",
+      "source": "ollama",
+      "valid_contract": true,
+      "contract_errors": [],
+      "attempts": [
+        1,
+        1,
+        1
+      ],
+      "chunks": 2,
+      "warnings": [
+        "dropped 2 item(s) copied from the prompt example"
+      ],
+      "latency_ms": 77200,
+      "usage": {
+        "input_tokens": 2838,
+        "output_tokens": 466
+      },
+      "output": {
+        "summary": "Pilot logistics agreement draft was confirmed for Monday and exported to Lucy Wairimu via OneNote, while RAM upgrades were checked for 3 depots to ensure proper readiness.",
+        "decisions": [
+          "Send pilot agreement draft to Lucy Wairimu by Monday",
+          "Check RAM upgrades for 3 depots"
+        ],
+        "action_items": [
+          {
+            "owner": "Achieng Ouma",
+            "task": "Send pilot agreement draft to Lucy Wairimu"
+          },
+          {
+            "owner": "Otieno (IT)",
+            "task": "Review Eldoret generator power issues and update the pilot scope"
+          },
+          {
+            "owner": "Mzee Kariuki",
+            "task": "Clarify pricing for pilot deployment"
+          },
+          {
+            "owner": "Lucy Wairimu",
+            "task": "Share list of depots with contact person"
+          },
+          {
+            "owner": "Achieng Ouma",
+            "task": "Check RAM upgrades for 3 depots"
+          },
+          {
+            "owner": "Ge Wambua",
+            "task": "Check LLM model offline requirement"
+          },
+          {
+            "owner": "Mzee Kariuki",
+            "task": "Ask IT security team for sign-off on Ollama installation"
+          },
+          {
+            "owner": "Unassigned",
+            "task": "Check SAP integration for pilot"
+          },
+          {
+            "owner": "Unassigned",
+            "task": "Check if data goes to cloud LLM offline"
+          },
+          {
+            "owner": "Unassigned",
+            "task": "Check if cloud fallback requirement"
+          }
+        ],
+        "open_questions": [
+          "What does the pilot cost us?",
+          "Will we need to hire additional staff for the pilot?",
+          "What will happen to the Eldoret depot PC?",
+          "Will the pilot be rolled out to other locations?",
+          "How will we ensure the pilot data is secure?",
+          "Does this integrate with SAP?",
+          "Will the pilot support Swahili voice notes?",
+          "Who pays for RAM upgrades?",
+          "Asante sana",
+          "Kwaheri",
+          "Asante"
+        ]
+      },
+      "error": null,
+      "raw_model_outputs": [
+        "{\"summary\": \"Pilot logistics agreement draft was sent to Lucy Wairimu and confirmed for Monday.\", \"decisions\": [\"Send pilot agreement draft to Lucy Wairimu by Monday\"], \"action_items\": [{\"owner\": \"Achieng Ouma\", \"task\": \"Send pilot agreement draft to Lucy Wairimu\"}, {\"owner\": \"Otieno (IT)\", \"task\": \"Review Eldoret generator power issues and update the pilot scope\"}, {\"owner\": \"Mzee Kariuki\", \"task\": \"Clarify pricing for pilot deployment\"}], \"open_questions\": [\"What does the pilot cost us?\", \"Will we need to hire additional staff for the pilot?\", \"What will happen to the Eldoret depot PC?\", \"Will the pilot be rolled out to other locations?\", \"How will we ensure the pilot data is secure?\"]}",
+        "{\"summary\": \"Discussion on OneNote export to Word.\", \"decisions\": [\"Call the bakery tomorrow for 6 cakes\", \"Book the hall\", \"Check RAM upgrades for 3 depots\"], \"action_items\": [{\"owner\": \"Lucy Wairimu\", \"task\": \"Share list of depots with contact person\"}, {\"owner\": \"Achieng Ouma\", \"task\": \"Check RAM upgrades for 3 depots\"}, {\"owner\": \"Ge Wambua\", \"task\": \"Check LLM model offline requirement\"}, {\"owner\": \"Mzee Kariuki\", \"task\": \"Ask IT security team for sign-off on Ollama installation\"}, {\"owner\": \"Unassigned\", \"task\": \"Check SAP integration for pilot\"}, {\"owner\": \"Unassigned\", \"task\": \"Check if data goes to cloud LLM offline\"}, {\"owner\": \"Unassigned\", \"task\": \"Check if cloud fallback requirement\"}], \"open_questions\": [\"Does this integrate with SAP?\", \"Will the pilot support Swahili voice notes?\", \"Who pays for RAM upgrades?\", \"Asante sana\", \"Kwaheri\", \"Asante\", \"Who pays for RAM upgrades?\", \"Asante sana\"]}",
+        "{\"summary\": \"Pilot logistics agreement draft was confirmed for Monday and exported to Lucy Wairimu via OneNote, while RAM upgrades were checked for 3 depots to ensure proper readiness.\"}"
+      ],
+      "ollama_calls": [
+        {
+          "prompt_eval_count": 1629,
+          "eval_count": 174,
+          "total_duration_ms": 28380,
+          "load_duration_ms": 1089,
+          "temperature": 0.7,
+          "seed": 101,
+          "wall_ms": 28455
+        },
+        {
+          "prompt_eval_count": 1108,
+          "eval_count": 251,
+          "total_duration_ms": 39480,
+          "load_duration_ms": 2055,
+          "temperature": 0.7,
+          "seed": 101,
+          "wall_ms": 39553
+        },
+        {
+          "prompt_eval_count": 101,
+          "eval_count": 41,
+          "total_duration_ms": 8723,
+          "load_duration_ms": 1541,
+          "temperature": 0.7,
+          "seed": 101,
+          "wall_ms": 8864
+        }
+      ],
+      "grade": {
+        "decisions": [
+          {
+            "id": "pilot = 3 depots (Nairobi, Mombasa, Nakuru)",
+            "found": true
+          },
+          {
+            "id": "30 days free then KES 50/run",
+            "found": false
+          },
+          {
+            "id": "no cloud LLM fallback",
+            "found": false
+          }
+        ],
+        "decisions_forbidden_hit": [],
+        "actions": [
+          {
+            "id": "Achieng sends pilot agreement draft by Monday",
+            "task_found": true,
+            "owner_correct": true,
+            "owners_given": [
+              "Achieng Ouma"
+            ]
+          },
+          {
+            "id": "Lucy shares depot list + contacts by Wednesday",
+            "task_found": true,
+            "owner_correct": true,
+            "owners_given": [
+              "Lucy Wairimu",
+              "Achieng Ouma"
+            ]
+          },
+          {
+            "id": "Mzee Kariuki gets IT security / CISO sign-off",
+            "task_found": true,
+            "owner_correct": true,
+            "owners_given": [
+              "Mzee Kariuki"
+            ]
+          },
+          {
+            "id": "check depot PCs have 8GB RAM (nobody took it)",
+            "task_found": true,
+            "owner_correct": false,
+            "owners_given": [
+              "Achieng Ouma"
+            ]
+          }
+        ],
+        "actions_forbidden_hit": [],
+        "open_questions": [
+          {
+            "id": "Swahili voice notes support?",
+            "found": true
+          },
+          {
+            "id": "who pays for RAM/hardware upgrades?",
+            "found": true
+          },
+          {
+            "id": "SAP Business One integration?",
+            "found": true
+          }
+        ],
+        "score": 0.786,
+        "points": "11/14 minus 0 reversed/forbidden items"
+      }
+    },
+    {
+      "agent": "meeting-notes-agent",
+      "input": "03-client-call-kariuki-logistics.docx",
+      "mode": "stress_t0.7",
+      "run": 2,
+      "temperature": 0.7,
+      "seed": 202,
+      "status": "completed",
+      "source": "ollama",
+      "valid_contract": true,
+      "contract_errors": [],
+      "attempts": [
+        1,
+        1,
+        1
+      ],
+      "chunks": 2,
+      "warnings": [
+        "owner 'Amina' not found in transcript -> Unassigned (task: Call the bakery tomorrow)",
+        "dropped 4 item(s) copied from the prompt example"
+      ],
+      "latency_ms": 40500,
+      "usage": {
+        "input_tokens": 2835,
+        "output_tokens": 215
+      },
+      "output": {
+        "summary": "Pilot call on Friday with Kariuki Logistics and AgentHub confirmed export to Word for OneNote. Export decision made based on feasibility and compatibility with existing systems.",
+        "decisions": [
+          "Export OneNote to Word"
+        ],
+        "action_items": [
+          {
+            "owner": "Lucy Wairimu",
+            "task": "Export OneNote to Word"
+          },
+          {
+            "owner": "Ge Wambua",
+            "task": "Look into it"
+          }
+        ],
+        "open_questions": [
+          "Does this integrate with SAP?"
+        ]
+      },
+      "error": null,
+      "raw_model_outputs": [
+        "{\"summary\": \"Pilot call on Friday with Kariuki Logistics and AgentHub.\", \"decisions\": [\"Order 6 cakes for Friday\"], \"action_items\": [{\"owner\": \"Amina\", \"task\": \"Call the bakery tomorrow\"}, {\"owner\": \"Unassigned\", \"task\": \"Book the hall\"}], \"open_questions\": [\"Do we invite the board?\"]}",
+        "{\"summary\": \"Lucy Wairimu asked if exporting OneNote to Word, and Ge Wambua confirmed that it can be done.\", \"decisions\": [\"Export OneNote to Word\"], \"action_items\": [{\"owner\": \"Lucy Wairimu\", \"task\": \"Export OneNote to Word\"}, {\"owner\": \"Ge Wambua\", \"task\": \"Look into it\"}], \"open_questions\": [\"Does this integrate with SAP?\"]}",
+        "{\"summary\": \"Pilot call on Friday with Kariuki Logistics and AgentHub confirmed export to Word for OneNote. Export decision made based on feasibility and compatibility with existing systems.\"}"
+      ],
+      "ollama_calls": [
+        {
+          "prompt_eval_count": 1629,
+          "eval_count": 80,
+          "total_duration_ms": 14672,
+          "load_duration_ms": 1746,
+          "temperature": 0.7,
+          "seed": 202,
+          "wall_ms": 14742
+        },
+        {
+          "prompt_eval_count": 1108,
+          "eval_count": 96,
+          "total_duration_ms": 16963,
+          "load_duration_ms": 2931,
+          "temperature": 0.7,
+          "seed": 202,
+          "wall_ms": 17099
+        },
+        {
+          "prompt_eval_count": 98,
+          "eval_count": 39,
+          "total_duration_ms": 8373,
+          "load_duration_ms": 1326,
+          "temperature": 0.7,
+          "seed": 202,
+          "wall_ms": 8489
+        }
+      ],
+      "grade": {
+        "decisions": [
+          {
+            "id": "pilot = 3 depots (Nairobi, Mombasa, Nakuru)",
+            "found": false
+          },
+          {
+            "id": "30 days free then KES 50/run",
+            "found": false
+          },
+          {
+            "id": "no cloud LLM fallback",
+            "found": false
+          }
+        ],
+        "decisions_forbidden_hit": [],
+        "actions": [
+          {
+            "id": "Achieng sends pilot agreement draft by Monday",
+            "task_found": false,
+            "owner_correct": false,
+            "owners_given": []
+          },
+          {
+            "id": "Lucy shares depot list + contacts by Wednesday",
+            "task_found": false,
+            "owner_correct": false,
+            "owners_given": []
+          },
+          {
+            "id": "Mzee Kariuki gets IT security / CISO sign-off",
+            "task_found": false,
+            "owner_correct": false,
+            "owners_given": []
+          },
+          {
+            "id": "check depot PCs have 8GB RAM (nobody took it)",
+            "task_found": false,
+            "owner_correct": false,
+            "owners_given": []
+          }
+        ],
+        "actions_forbidden_hit": [],
+        "open_questions": [
+          {
+            "id": "Swahili voice notes support?",
+            "found": false
+          },
+          {
+            "id": "who pays for RAM/hardware upgrades?",
+            "found": false
+          },
+          {
+            "id": "SAP Business One integration?",
+            "found": true
+          }
+        ],
+        "score": 0.071,
+        "points": "1/14 minus 0 reversed/forbidden items"
+      }
+    },
+    {
+      "agent": "meeting-notes-agent",
+      "input": "03-client-call-kariuki-logistics.docx",
+      "mode": "stress_t0.7",
+      "run": 3,
+      "temperature": 0.7,
+      "seed": 303,
+      "status": "completed",
+      "source": "ollama",
+      "valid_contract": true,
+      "contract_errors": [],
+      "attempts": [
+        1,
+        1,
+        1
+      ],
+      "chunks": 2,
+      "warnings": [
+        "dropped 5 item(s) copied from the prompt example"
+      ],
+      "latency_ms": 148094,
+      "usage": {
+        "input_tokens": 2893,
+        "output_tokens": 791
+      },
+      "output": {
+        "summary": "Define pilot scope, set pilot pricing, and identify technical issues to be addressed during a successful pilot program launch. The technical issues to be addressed include checking Nairobi, Mombasa, and Nakuru PCs for 8 gigs of RAM and exporting OneNote to Word and integrating with SAP.",
+        "decisions": [
+          "Define pilot scope",
+          "Set pilot pricing",
+          "Identify technical issues to be addressed",
+          "Check Nairobi, Mombasa, and Nakuru PCs for 8 gigs of RAM",
+          "Export OneNote to Word",
+          "Integrate with SAP",
+          "No cloud fallback for local data",
+          "Check local PC model"
+        ],
+        "action_items": [
+          {
+            "owner": "Mzee Kariuki",
+            "task": "Define pilot scope"
+          },
+          {
+            "owner": "Achieng Ouma",
+            "task": "Set pilot pricing"
+          },
+          {
+            "owner": "Lucy Wairimu",
+            "task": "Identify technical issues to be addressed"
+          },
+          {
+            "owner": "Ge Wambua",
+            "task": "Provide pilot agreement draft"
+          },
+          {
+            "owner": "Achieng Ouma",
+            "task": "Send pilot agreement draft directly to Lucy"
+          },
+          {
+            "owner": "Otieno (IT)",
+            "task": "Provide Eldoret depot PC specs"
+          },
+          {
+            "owner": "Lucy Wairimu",
+            "task": "Request OneNote to Word export for board meeting minutes and supplier calls in phase two pilot"
+          },
+          {
+            "owner": "Ge Wambua",
+            "task": "Provide detailed report on pilot scope, pricing, and technical issues"
+          },
+          {
+            "owner": "Achieng Ouma",
+            "task": "Provide additional context on technical issues to be addressed in phase two pilot"
+          },
+          {
+            "owner": "Mzee Kariuki",
+            "task": "Provide confirmation on pilot deployment timeline"
+          },
+          {
+            "owner": "Lucy Wairimu",
+            "task": "Export OneNote to Word"
+          },
+          {
+            "owner": "Achieng Ouma",
+            "task": "Check Nairobi, Mombasa, and Nakuru PCs for 8 gigs of RAM"
+          },
+          {
+            "owner": "Achieng Ouma",
+            "task": "Check for SAP integration"
+          },
+          {
+            "owner": "Otieno (IT)",
+            "task": "Sign off on Ollama installation"
+          },
+          {
+            "owner": "Achieng Ouma",
+            "task": "Check local PC model"
+          }
+        ],
+        "open_questions": [
+          "Is the pilot going to be rolled out in the next quarter?",
+          "What are the expected costs for the pilot?",
+          "Will there be any changes to the technical specifications of the pilot?",
+          "Are there any other clients in the pilot program that have been using the Eldoret depot PC?",
+          "How will the technical issues in Eldoret be addressed?",
+          "Are there any other technical issues that need to be addressed in the pilot?",
+          "Will there be any changes to the pilot pricing for the next quarter?",
+          "Does the model run fully offline?",
+          "Will the pilot support Swahili voice notes?",
+          "Who pays for RAM upgrades?",
+          "Will the SAP connector be ready for the full contract?"
+        ]
+      },
+      "error": null,
+      "raw_model_outputs": [
+        "{\"summary\": \"Pilot call with scope, pricing, and technical issues discussed.\", \"decisions\": [\"Define pilot scope\", \"Set pilot pricing\", \"Identify technical issues to be addressed\"], \"action_items\": [{\"owner\": \"Mzee Kariuki\", \"task\": \"Define pilot scope\"}, {\"owner\": \"Achieng Ouma\", \"task\": \"Set pilot pricing\"}, {\"owner\": \"Lucy Wairimu\", \"task\": \"Identify technical issues to be addressed\"}, {\"owner\": \"Ge Wambua\", \"task\": \"Provide pilot agreement draft\"}, {\"owner\": \"Achieng Ouma\", \"task\": \"Send pilot agreement draft directly to Lucy\"}, {\"owner\": \"Otieno (IT)\", \"task\": \"Provide Eldoret depot PC specs\"}, {\"owner\": \"Lucy Wairimu\", \"task\": \"Request OneNote to Word export for board meeting minutes and supplier calls in phase two pilot\"}, {\"owner\": \"Ge Wambua\", \"task\": \"Provide detailed report on pilot scope, pricing, and technical issues\"}, {\"owner\": \"Achieng Ouma\", \"task\": \"Provide additional context on technical issues to be addressed in phase two pilot\"}, {\"owner\": \"Mzee Kariuki\", \"task\": \"Provide confirmation on pilot deployment timeline\"}], \"open_questions\": [\"Is the pilot going to be rolled out in the next quarter?\", \"What are the expected costs for the pilot?\", \"Will there be any changes to the technical specifications of the pilot?\", \"Are there any other clients in the pilot program that have been using the Eldoret depot PC?\", \"How will the technical issues in Eldoret be addressed?\", \"What are the expected benefits of the pilot?\", \"Are there any other technical issues that need to be addressed in the pilot?\", \"Will there be any changes to the pilot pricing for the next quarter?\"]}",
+        "{\"summary\": \"OneNote export to Word, Swahili voice notes in WhatsApp, RAM upgrades, security team sign-off, and SAP integration\", \"decisions\": [\"Order 6 cakes for Friday\", \"Call the bakery tomorrow\", \"Book the hall\", \"Check Nairobi, Mombasa, and Nakuru PCs for 8 gigs of RAM\", \"Export OneNote to Word\", \"Integrate with SAP\", \"No cloud fallback for local data\", \"Check local PC model\"], \"action_items\": [{\"owner\": \"Lucy Wairimu\", \"task\": \"Export OneNote to Word\"}, {\"owner\": \"Ge Wambua\", \"task\": \"Call the bakery tomorrow\"}, {\"owner\": \"Mzee Kariuki\", \"task\": \"Book the hall\"}, {\"owner\": \"Achieng Ouma\", \"task\": \"Check Nairobi, Mombasa, and Nakuru PCs for 8 gigs of RAM\"}, {\"owner\": \"Achieng Ouma\", \"task\": \"Check for SAP integration\"}, {\"owner\": \"Otieno (IT)\", \"task\": \"Sign off on Ollama installation\"}, {\"owner\": \"Achieng Ouma\", \"task\": \"Check local PC model\"}], \"open_questions\": [\"Does the model run fully offline?\", \"Will the pilot support Swahili voice notes?\", \"Who pays for RAM upgrades?\", \"Will the SAP connector be ready for the full contract?\", \"Will the pilot support Swahili voice notes?\", \"Will the pilot support Swahili voice notes?\", \"Who pays for RAM upgrades?\", \"Will the SAP connector be ready for the full contract?\"]}",
+        "{\n  \"summary\": \"Define pilot scope, set pilot pricing, and identify technical issues to be addressed during a successful pilot program launch. The technical issues to be addressed include checking Nairobi, Mombasa, and Nakuru PCs for 8 gigs of RAM and exporting OneNote to Word and integrating with SAP.\"\n}"
+      ],
+      "ollama_calls": [
+        {
+          "prompt_eval_count": 1629,
+          "eval_count": 388,
+          "total_duration_ms": 65613,
+          "load_duration_ms": 994,
+          "temperature": 0.7,
+          "seed": 303,
+          "wall_ms": 65689
+        },
+        {
+          "prompt_eval_count": 1108,
+          "eval_count": 338,
+          "total_duration_ms": 57879,
+          "load_duration_ms": 3782,
+          "temperature": 0.7,
+          "seed": 303,
+          "wall_ms": 58206
+        },
+        {
+          "prompt_eval_count": 156,
+          "eval_count": 65,
+          "total_duration_ms": 23539,
+          "load_duration_ms": 11233,
+          "temperature": 0.7,
+          "seed": 303,
+          "wall_ms": 23926
+        }
+      ],
+      "grade": {
+        "decisions": [
+          {
+            "id": "pilot = 3 depots (Nairobi, Mombasa, Nakuru)",
+            "found": false
+          },
+          {
+            "id": "30 days free then KES 50/run",
+            "found": false
+          },
+          {
+            "id": "no cloud LLM fallback",
+            "found": true
+          }
+        ],
+        "decisions_forbidden_hit": [],
+        "actions": [
+          {
+            "id": "Achieng sends pilot agreement draft by Monday",
+            "task_found": true,
+            "owner_correct": true,
+            "owners_given": [
+              "Ge Wambua",
+              "Achieng Ouma"
+            ]
+          },
+          {
+            "id": "Lucy shares depot list + contacts by Wednesday",
+            "task_found": true,
+            "owner_correct": false,
+            "owners_given": [
+              "Otieno (IT)"
+            ]
+          },
+          {
+            "id": "Mzee Kariuki gets IT security / CISO sign-off",
+            "task_found": true,
+            "owner_correct": false,
+            "owners_given": [
+              "Otieno (IT)"
+            ]
+          },
+          {
+            "id": "check depot PCs have 8GB RAM (nobody took it)",
+            "task_found": true,
+            "owner_correct": false,
+            "owners_given": [
+              "Achieng Ouma"
+            ]
+          }
+        ],
+        "actions_forbidden_hit": [],
+        "open_questions": [
+          {
+            "id": "Swahili voice notes support?",
+            "found": true
+          },
+          {
+            "id": "who pays for RAM/hardware upgrades?",
+            "found": true
+          },
+          {
+            "id": "SAP Business One integration?",
+            "found": true
+          }
+        ],
+        "score": 0.643,
+        "points": "9/14 minus 0 reversed/forbidden items"
+      }
+    }
+  ],
+  "code_path": "file -> apps/local-runtime/app/jobs._read_source -> POST /invoke agents/meeting-notes-agent/main.py -> notes_extract.extract_meeting_notes -> marketplace_sdk.ollama_local.chat_json -> Ollama 127.0.0.1:11434",
+  "inputs": [
+    {
+      "file": ".dev-tools/ollama-proof/inputs/meeting-notes/01-payouts-standup.txt",
+      "chars_read": 2511,
+      "text": "Payouts squad standup - Tue 29 Sep (auto-transcribed by phone, not cleaned up)\n\n[09:02] Wanjiku (Jiku): ok ok tuanze, um, can everyone hear me? Brayo you're on mute\n[09:02] Brian Otieno: sorry sorry, niko hapa. yeah yeah\n[09:03] Jiku: so first thing, the the payout retries. last week we said we'd just retry every 5 min\n[09:03] Kevo: yeah but-\n[09:03] Fatuma Hassan: -sorry go ahead\n[09:03] Kevo: no no you go\n[09:04] Fatuma Hassan: I was just saying Safaricom rate limits us, like, if we hammer Daraja every 5 min we get throttled, it happend on saturday\n[09:04] Brian Otieno: [inaudible] ...throttled for like 40 minutes\n[09:05] Jiku: ok so decision: exponential backoff, max 6 tries, not the 5 min thing. everyone ok?\n[09:05] Brian Otieno: sawa\n[09:05] Fatuma Hassan: yes\n[09:06] Kevo: I'll write the backoff thing, give me till thursday\n[09:06] Jiku: thanks Kevo\n[09:07] Jiku: next, the dashboard migration to Postgres 16. Brayo?\n[09:07] Brian Otieno: uh yeah so I think we should do it this sprint, like, this friday\n[09:08] Fatuma Hassan: this friday?? we have the Equity bank demo on friday\n[09:08] Jiku: hmm true. ok let's do the migration friday night after the demo then\n[09:09] Brian Otieno: ok I can babysit it friday night\n[09:09] Kevo: (laughs) pole\n[09:10] Fatuma Hassan: btw did anyone see the M-Pesa statement recon failed again for 2 merchants\n[09:10] Jiku: yeah that's the known one, ignore for now\n[09:11] Kevo: also the staging box is super slow, is it just me\n[09:11] Brian Otieno: not just you\n[09:12] Jiku: actually no, wait - scrap the friday night thing. no migrations this sprint at all. we move Postgres 16 to next sprint. too risky with the demo, if it breaks saturday we're dead\n[09:12] Brian Otieno: fine by me honestly, I didnt want friday night anyway\n[09:13] Fatuma Hassan: someone needs to update the on-call runbook for the new backoff, the on-call people wont know why payouts are delayed\n[09:13] Jiku: yeah good point, somebody should do that\n[09:13] [silence]\n[09:14] Kevo: also who's paying for the sandbox renewal, the Daraja sandbox cert expires on the 14th\n[09:14] Jiku: not sure, I'll ask finance... actually no, Fatuma can you ask Mercy in finance, you sit next to her\n[09:15] Fatuma Hassan: ok nitamuuliza leo\n[09:15] Brian Otieno: do we still need the old USSD flow or can we kill it?\n[09:16] Jiku: good q, parking that, need usage numbers from Kevo's analytics first\n[09:16] Kevo: I dont have those numbers yet tbh\n[09:16] Jiku: ok asante everyone, tuonane kesho"
+    },
+    {
+      "file": ".dev-tools/ollama-proof/inputs/meeting-notes/02-product-sync.md",
+      "chars_read": 1375,
+      "text": "# Product sync - AgentHub local hire pricing & onboarding (tue)\n\n**Attendees:** Ge (Wambua), Nyambura \"Nya\" Githinji, Ochieng Odhiambo (Ochi), Priya S. (design), Dan\n\n## notes (typed live, sorry for typos)\n\n- **Nya**: pricng for local-hire agents - proposing KES 50/run flat\n- **Ochi**: flat is bad for long docs imo, wants per-page pricng\n- **Ge**: per page is confusing for ppl. lets go per run but cap input at 20 pages\n- **Nya**: ok agreed, KES 50 per run, 20 page cap ✅\n- **Priya**: onboarding screen: 3 steps -> merge into 2??\n- **Dan**: i can mock it up, uh, probably by next wed if Priya sends me the copy\n- **Priya**: will send copy tmrw\n- **Ochi**: re refunds - if the local model fails do we refund?\n- **Ge**: yes auto refund if job fails\n  - ~~auto refund~~ -> *changed*: Nya pointed out fraud risk (ppl killing Ollama on purpose). refund only after support review. Ge agreed, final.\n- **Nya**: also M-Pesa STK push for payment, who's integrating that?\n  - (nobody answered, we moved on)\n- **Dan**: someone should write the FAQ for \"why does it need Ollama / what is Ollama\"\n- **Ge**: do we support Mac at launch?? tbd - need effort estimate from Ochi's team\n- **Ochi**: my team can give an estimate by friday\n- **Priya**: pls lets not use the purple again lol\n\n## random\n- Priya's cat walked on keyboard asdfghjkl;;\n- next sync thurs 3pm\n- Ge: kwisha, thanks all"
+    },
+    {
+      "file": ".dev-tools/ollama-proof/inputs/meeting-notes/03-client-call-kariuki-logistics.docx",
+      "chars_read": 7721,
+      "text": "Kariuki Logistics x AgentHub - pilot call (Otter export, unedited)\nRecorded Wed 30 Sep 2026. Speakers auto-labelled, some labels wrong.\nGe Wambua  00:00:04\nHello hello, habari za asubuhi? Can you hear me? I think Lucy is still joining.\nMzee Kariuki  00:00:11\nNzuri sana. Yes we hear you. Lucy is coming, she's in traffic, you know Mombasa Road at this hour.\nAchieng Ouma  00:00:19\nHaha yes, eeh, Mombasa Road. Morning Mzee.\nMzee Kariuki  00:00:24\nMorning morning. So, um, where do we start?\nGe Wambua  00:00:29\nLet me give a quick recap. Last time we talked about the meeting notes agent and the invoice checker running on your depot PCs, locally, so nothing goes to the cloud.\nAchieng Ouma  00:00:33\nBefore we go on, Mzee, how was the Naivasha trip? I saw the photos on LinkedIn, the flamingos!\nMzee Kariuki  00:00:36\nAh it was good, too short. The kids wanted to stay. Next time we go for a full week, maybe December, eh.\nGe Wambua  00:00:38\nDecember in Naivasha is nice but the traffic on the escarpment, wueh. Last year it took us six hours.\nMzee Kariuki  00:00:39\nSix hours! No, you must leave at 5am. Anyway, anyway. Let's continue.\nMzee Kariuki  00:00:41\nYes, that was the main thing for us. Our board is very, very strict about data. Customer names, delivery addresses, all that, it cannot leave our building.\nAchieng Ouma  00:00:52\nRight, and that's exactly why we built the local runtime. It runs on the PC with a small model, Ollama, and the files stay on the machine.\nLucy Wairimu  00:01:03\nSorry sorry I'm here now. Traffic ilikuwa mbaya. Did I miss anything?\nGe Wambua  00:01:08\nNo no, we just started. Karibu Lucy.\nLucy Wairimu  00:01:12\nThanks. So from procurement side, my questions are mostly about cost and the contract.\nMzee Kariuki  00:01:20\nLet's do scope first. How many depots for the pilot? I was thinking all five. Nairobi, Mombasa, Kisumu, Nakuru, Eldoret.\nGe Wambua  00:01:31\nFive is fine from our side. The installer is the same for all of them.\nAchieng Ouma  00:01:36\nYeah five works, we'd need one IT contact per depot though.\nSpeaker 5  00:01:44\n[crosstalk] ...the Eldoret one has the old Dell...\nMzee Kariuki  00:01:47\nSorry who was that? Ah, that's Otieno from IT, he's dialled in from Eldoret. Otieno, go ahead.\nOtieno (IT)  00:01:53\nYes sorry, I was saying the Eldoret depot PC is an old Dell, maybe 4 gigs RAM. I don't think it can run a model.\nGe Wambua  00:02:01\nOk good to know. The 1b model wants about 8 gigs to be comfortable.\nLucy Wairimu  00:02:09\nAnd budget-wise, honestly, five depots in the pilot is too much for this quarter. Can we start smaller?\nMzee Kariuki  00:02:16\nHmm. Ok. Lucy is right, I've seen the numbers. Let's do three depots. Nairobi, Mombasa and Nakuru. Kisumu and Eldoret in phase two.\nGe Wambua  00:02:27\nThree depots, Nairobi, Mombasa, Nakuru. Noted. That's the pilot scope then?\nMzee Kariuki  00:02:31\nYes, final. Three.\nAchieng Ouma  00:02:35\nPerfect. That actually makes the rollout easier for us too.\nLucy Wairimu  00:02:40\nNow pricing. What does the pilot cost us?\nGe Wambua  00:02:44\nFor the pilot we were proposing thirty days free, then per-run pricing after, KES 50 per run like our standard local plan.\nLucy Wairimu  00:02:53\nThirty days free, ok, I like that. And after thirty days we can cancel without penalty?\nGe Wambua  00:02:59\nYes, no penalty, you can cancel anytime.\nLucy Wairimu  00:03:03\nThen I'm fine with that. Mzee?\nMzee Kariuki  00:03:06\nAgreed. Thirty days free, then KES 50 per run.\nAchieng Ouma  00:03:12\nGreat. So I'll send the pilot agreement draft, I can have it to you by Monday.\nLucy Wairimu  00:03:18\nMonday is good. Send it to me directly, not the generic procurement inbox, that one is a black hole.\nAchieng Ouma  00:03:24\nHaha noted, directly to you.\nOtieno (IT)  00:03:13\nSorry, side note, did you guys watch Harambee Stars on Sunday? That second goal, offside kabisa.\nAchieng Ouma  00:03:15\nEeh, I was at Nyayo! The referee was blind, the whole stadium was shouting.\nMzee Kariuki  00:03:17\nOtieno, focus. But yes, it was offside. Haha. Ok.\nLucy Wairimu  00:03:19\nAlso my M-Pesa was down for an hour on Saturday, I couldn't even pay for parking at the Junction. The askari was not amused.\nGe Wambua  00:03:21\nSame here, I think the whole network had issues. Anyway, back to the pilot, sorry.\nOtieno (IT)  00:03:22\nOne more random thing, the Eldoret generator failed again last week, we lost power for two days. So even phase two, we need to think about power there.\nMzee Kariuki  00:03:24\nThat's a separate facilities issue, not for this call. Let's move.\nAchieng Ouma  00:03:25\nSure. For context, other clients in the pilot program have been using it for board meeting minutes and supplier calls, mostly Word documents, some markdown from Notion exports.\nLucy Wairimu  00:03:26\nNotion, eh, we use OneNote mostly. Can we export OneNote to Word? I think yes.\nGe Wambua  00:03:27\nYes, OneNote exports to .docx fine. That works today.\nMzee Kariuki  00:03:28\nAlso, eh, one thing. The drivers send voice notes in Swahili on WhatsApp about deliveries. Can the notes thing handle voice notes?\nGe Wambua  00:03:38\nNot today. It's text files, markdown, Word documents. Voice would need a speech model on the PC, we haven't tested that on these machines.\nMzee Kariuki  00:03:47\nOk, but will the pilot support Swahili voice notes at some point? That's what my depot managers will ask me.\nGe Wambua  00:03:54\nHonestly I don't know yet. Let us look into it, I can't promise for the pilot.\nMzee Kariuki  00:03:59\nFine, fine. Let's keep it as a question.\nLucy Wairimu  00:04:03\nAnother one from me. If the PCs are too weak, like Otieno said about Eldoret, who pays for the RAM upgrades? Us or you?\nGe Wambua  00:04:11\nHmm. Good question. We don't normally supply hardware...\nMzee Kariuki  00:04:15\nLet's not decide today. Eldoret is phase two anyway.\nLucy Wairimu  00:04:19\nOk but it will come up. Write it down.\nOtieno (IT)  00:04:23\nAlso before anything gets installed I need the security team to sign off on Ollama. They'll want to know what ports it opens.\nAchieng Ouma  00:04:31\nIt only listens on 127.0.0.1, port 11434, nothing exposed to the network. We can send a one-pager.\nMzee Kariuki  00:04:39\nGood. I will get the IT security sign-off myself, I'll talk to the CISO this week. Otieno, you just support.\nOtieno (IT)  00:04:46\nSawa Mzee.\nLucy Wairimu  00:04:48\nAnd I'll share the list of the three depots with the contact person for each, by Wednesday.\nGe Wambua  00:04:54\nPerfect, thanks Lucy.\nAchieng Ouma  00:04:57\nSomeone also needs to check whether the Nairobi, Mombasa and Nakuru PCs actually have 8 gigs of RAM. Before we ship the installer.\nMzee Kariuki  00:05:04\nYes that should be checked.\nGe Wambua  00:05:06\nMm, yeah. Definitely needs doing.\nSpeaker 5  00:05:09\n[inaudible]\nLucy Wairimu  00:05:12\nCan I also ask, does this integrate with SAP? Our invoices are all in SAP Business One.\nAchieng Ouma  00:05:19\nNot directly for the pilot. You'd export invoices as files. A proper SAP connector we'd have to scope.\nLucy Wairimu  00:05:26\nOk so SAP integration is open. Fine for the pilot, but I'll need an answer before we sign the full contract.\nMzee Kariuki  00:05:34\nAnything else? I have another call at half past.\nGe Wambua  00:05:38\nOne small thing, the model runs fully offline. We decided earlier that no data goes to any cloud LLM, not even as a backup. Is that still the requirement?\nMzee Kariuki  00:05:47\nYes. No cloud fallback. If the local thing fails it should just fail and tell us, not send data anywhere.\nGe Wambua  00:05:54\nUnderstood, that's how it works.\nLucy Wairimu  00:05:57\nOk. Asanteni sana.\nAchieng Ouma  00:05:59\nAsante, talk soon. Have a good day Mzee.\nMzee Kariuki  00:06:02\nKwaheri."
+    }
+  ],
+  "expected": {
+    "_doc": "Ground truth written by hand for the messy transcripts. Grader: keyword heuristics + manual review in the evidence file.",
+    "01-payouts-standup.txt": {
+      "decisions_required": [
+        {
+          "id": "exponential backoff, max 6 retries",
+          "all": [
+            [
+              "backoff",
+              "exponential"
+            ]
+          ]
+        },
+        {
+          "id": "Postgres 16 migration moved to next sprint",
+          "all": [
+            [
+              "postgres",
+              "migration"
+            ],
+            [
+              "next sprint"
+            ]
+          ]
+        }
+      ],
+      "decisions_forbidden": [
+        {
+          "id": "reversed: migrate Friday night",
+          "any": [
+            "friday night"
+          ]
+        },
+        {
+          "id": "reversed: retry every 5 min",
+          "any": [
+            "every 5 min",
+            "every five min"
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "id": "Kevo implements backoff by Thursday",
+          "task": [
+            "backoff"
+          ],
+          "owner": [
+            "kevo",
+            "kevin"
+          ]
+        },
+        {
+          "id": "Fatuma asks Mercy in finance re sandbox cert",
+          "task": [
+            "mercy",
+            "finance",
+            "sandbox",
+            "cert"
+          ],
+          "owner": [
+            "fatuma"
+          ]
+        },
+        {
+          "id": "update on-call runbook (nobody took it)",
+          "task": [
+            "runbook"
+          ],
+          "owner": [
+            "unassigned"
+          ]
+        }
+      ],
+      "actions_forbidden": [
+        {
+          "id": "reversed: Brian babysits Friday-night migration",
+          "task": [
+            "friday night",
+            "babysit"
+          ]
+        }
+      ],
+      "open_questions": [
+        {
+          "id": "kill old USSD flow?",
+          "any": [
+            "ussd"
+          ]
+        }
+      ]
+    },
+    "02-product-sync.md": {
+      "decisions_required": [
+        {
+          "id": "KES 50 per run with 20-page cap",
+          "all": [
+            [
+              "50"
+            ],
+            [
+              "20"
+            ]
+          ]
+        },
+        {
+          "id": "refunds only after support review (auto refund reversed)",
+          "all": [
+            [
+              "refund"
+            ],
+            [
+              "review"
+            ]
+          ]
+        }
+      ],
+      "decisions_forbidden": [
+        {
+          "id": "reversed: auto refund",
+          "any": [
+            "auto refund",
+            "automatic refund",
+            "auto-refund"
+          ]
+        },
+        {
+          "id": "rejected: per-page pricing",
+          "any": [
+            "per-page pricing",
+            "per page pricing"
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "id": "Dan mocks up 2-step onboarding by next Wed",
+          "task": [
+            "mock",
+            "onboarding"
+          ],
+          "owner": [
+            "dan"
+          ]
+        },
+        {
+          "id": "Priya sends copy tomorrow",
+          "task": [
+            "copy"
+          ],
+          "owner": [
+            "priya"
+          ]
+        },
+        {
+          "id": "Ochi's team: Mac effort estimate by Friday",
+          "task": [
+            "estimate",
+            "mac"
+          ],
+          "owner": [
+            "ochi",
+            "ochieng"
+          ]
+        },
+        {
+          "id": "write 'why Ollama' FAQ (nobody took it)",
+          "task": [
+            "faq"
+          ],
+          "owner": [
+            "unassigned"
+          ]
+        }
+      ],
+      "actions_forbidden": [],
+      "open_questions": [
+        {
+          "id": "who integrates M-Pesa STK push?",
+          "any": [
+            "stk",
+            "m-pesa",
+            "mpesa"
+          ]
+        },
+        {
+          "id": "Mac support at launch?",
+          "any": [
+            "mac"
+          ]
+        }
+      ]
+    },
+    "03-client-call-kariuki-logistics.docx": {
+      "decisions_required": [
+        {
+          "id": "pilot = 3 depots (Nairobi, Mombasa, Nakuru)",
+          "all": [
+            [
+              "three",
+              "3"
+            ],
+            [
+              "depot"
+            ]
+          ]
+        },
+        {
+          "id": "30 days free then KES 50/run",
+          "all": [
+            [
+              "30",
+              "thirty"
+            ],
+            [
+              "free"
+            ]
+          ]
+        },
+        {
+          "id": "no cloud LLM fallback",
+          "all": [
+            [
+              "cloud"
+            ]
+          ]
+        }
+      ],
+      "decisions_forbidden": [
+        {
+          "id": "reversed: all five depots",
+          "any": [
+            "five depots",
+            "5 depots",
+            "all five",
+            "all 5"
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "id": "Achieng sends pilot agreement draft by Monday",
+          "task": [
+            "agreement"
+          ],
+          "owner": [
+            "achieng"
+          ]
+        },
+        {
+          "id": "Lucy shares depot list + contacts by Wednesday",
+          "task": [
+            "depot",
+            "contact",
+            "list"
+          ],
+          "owner": [
+            "lucy"
+          ]
+        },
+        {
+          "id": "Mzee Kariuki gets IT security / CISO sign-off",
+          "task": [
+            "sign-off",
+            "signoff",
+            "sign off",
+            "ciso",
+            "security"
+          ],
+          "owner": [
+            "kariuki",
+            "mzee"
+          ]
+        },
+        {
+          "id": "check depot PCs have 8GB RAM (nobody took it)",
+          "task": [
+            "ram",
+            "8 gig",
+            "8gb"
+          ],
+          "owner": [
+            "unassigned"
+          ]
+        }
+      ],
+      "actions_forbidden": [],
+      "open_questions": [
+        {
+          "id": "Swahili voice notes support?",
+          "any": [
+            "voice",
+            "swahili"
+          ]
+        },
+        {
+          "id": "who pays for RAM/hardware upgrades?",
+          "any": [
+            "upgrade",
+            "hardware",
+            "who pays",
+            "ram"
+          ]
+        },
+        {
+          "id": "SAP Business One integration?",
+          "any": [
+            "sap"
+          ]
+        }
+      ]
+    }
+  },
+  "legacy_sidecar_baseline": [
+    {
+      "input": "01-payouts-standup.txt",
+      "source": "canned",
+      "is_canned_output": true,
+      "valid_contract": true,
+      "latency_ms": 120175,
+      "output": {
+        "summary": "Team aligned on Q4 launch timeline and ownership of follow-ups.",
+        "decisions": [
+          "Ship beta by Oct 15",
+          "Use weekly standup for launch blockers only"
+        ],
+        "action_items": [
+          {
+            "owner": "Alex",
+            "task": "Draft launch checklist and share by Friday"
+          },
+          {
+            "owner": "Jordan",
+            "task": "Fix onboarding email bug before beta"
+          },
+          {
+            "owner": "Sam",
+            "task": "Confirm design freeze with stakeholders"
+          }
+        ],
+        "open_questions": [
+          "Do we need a soft launch for existing customers?",
+          "Who owns post-launch metrics dashboard?"
+        ]
+      },
+      "grade": null
+    },
+    {
+      "input": "02-product-sync.md",
+      "source": "ollama",
+      "is_canned_output": false,
+      "valid_contract": true,
+      "latency_ms": 85062,
+      "output": {
+        "summary": "# Product sync - AgentHub local hire pricing & onboarding (tue)",
+        "decisions": [
+          "pricng for local-hire agents - proposing KES 50/run flat",
+          "auto refund if job fails"
+        ],
+        "action_items": [
+          {
+            "owner": "Nya",
+            "task": "pricng for local-hire agents - proposing KES 50/run flat"
+          }
+        ],
+        "open_questions": [
+          "re refunds - if the local model fails do we refund?",
+          "who's integrating M-Pesa STK push for payment?"
+        ]
+      },
+      "grade": {
+        "decisions": [
+          {
+            "id": "KES 50 per run with 20-page cap",
+            "found": false
+          },
+          {
+            "id": "refunds only after support review (auto refund reversed)",
+            "found": false
+          }
+        ],
+        "decisions_forbidden_hit": [
+          "reversed: auto refund"
+        ],
+        "actions": [
+          {
+            "id": "Dan mocks up 2-step onboarding by next Wed",
+            "task_found": false,
+            "owner_correct": false,
+            "owners_given": []
+          },
+          {
+            "id": "Priya sends copy tomorrow",
+            "task_found": false,
+            "owner_correct": false,
+            "owners_given": []
+          },
+          {
+            "id": "Ochi's team: Mac effort estimate by Friday",
+            "task_found": false,
+            "owner_correct": false,
+            "owners_given": []
+          },
+          {
+            "id": "write 'why Ollama' FAQ (nobody took it)",
+            "task_found": false,
+            "owner_correct": false,
+            "owners_given": []
+          }
+        ],
+        "actions_forbidden_hit": [],
+        "open_questions": [
+          {
+            "id": "who integrates M-Pesa STK push?",
+            "found": true
+          },
+          {
+            "id": "Mac support at launch?",
+            "found": false
+          }
+        ],
+        "score": 0.0,
+        "points": "1/12 minus 1 reversed/forbidden items"
+      }
+    },
+    {
+      "input": "03-client-call-kariuki-logistics.docx",
+      "source": "canned",
+      "is_canned_output": true,
+      "valid_contract": true,
+      "latency_ms": 120013,
+      "output": {
+        "summary": "Team aligned on Q4 launch timeline and ownership of follow-ups.",
+        "decisions": [
+          "Ship beta by Oct 15",
+          "Use weekly standup for launch blockers only"
+        ],
+        "action_items": [
+          {
+            "owner": "Alex",
+            "task": "Draft launch checklist and share by Friday"
+          },
+          {
+            "owner": "Jordan",
+            "task": "Fix onboarding email bug before beta"
+          },
+          {
+            "owner": "Sam",
+            "task": "Confirm design freeze with stakeholders"
+          }
+        ],
+        "open_questions": [
+          "Do we need a soft launch for existing customers?",
+          "Who owns post-launch metrics dashboard?"
+        ]
+      },
+      "grade": null
+    }
+  ]
+}

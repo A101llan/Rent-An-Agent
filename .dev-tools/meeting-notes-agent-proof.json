@@ -1,0 +1,36 @@
+﻿{
+  "agent_slug": "meeting-notes-agent",
+  "urls": {
+    "api": "http://localhost:8000",
+    "api_docs": "http://localhost:8000/docs",
+    "runtime": "http://localhost:8001/health",
+    "marketplace_search": "http://localhost:8000/api/v1/marketplace/agents?search=meeting",
+    "agent_detail": "http://localhost:8000/api/v1/agents/meeting-notes-agent"
+  },
+  "proof": {
+    "api_health_status": 200,
+    "runtime_health_status": 200,
+    "runtime_provider": "mock",
+    "login_status": 200,
+    "get_agent_status": 200,
+    "hire_status": 201,
+    "execute_status": 200,
+    "execute_status_field": "completed",
+    "session_id": "d2a573ae-71e8-44e1-ac7e-a0d52e22b990",
+    "execution_id": "c27d5477-3da4-4262-a878-9c59d2928201",
+    "sample_input": "messy notes from product sync: alex said ship beta oct 15. jordan to fix onboarding email bug. sam needs design freeze confirmed. open: soft launch for existing customers? who owns metrics dashboard? weekly standup for blockers only.",
+    "sample_output": {
+      "summary": "Team aligned on Q4 launch timeline and ownership of follow-ups.",
+      "decisions": ["Ship beta by Oct 15", "Use weekly standup for launch blockers only"],
+      "action_items": [
+        {"owner": "Alex", "task": "Draft launch checklist and share by Friday"},
+        {"owner": "Jordan", "task": "Fix onboarding email bug before beta"},
+        {"owner": "Sam", "task": "Confirm design freeze with stakeholders"}
+      ],
+      "open_questions": [
+        "Do we need a soft launch for existing customers?",
+        "Who owns post-launch metrics dashboard?"
+      ]
+    }
+  }
+}

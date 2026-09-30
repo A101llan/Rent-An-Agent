@@ -1,0 +1,28 @@
+{
+  "name": "decisions-v2",
+  "note": "OPT-IN experiment (not the default). Explicit field instructions + one few-shot example + JSON-schema format + temperature 0. Enable with LOCAL_RUNTIME_PROMPT_FILE=prompts\\decisions-v2.json",
+  "system": "You are a meeting-notes extractor. Read the notes and return ONLY a JSON object with keys summary, decisions, action_items, open_questions.\n- summary: 1-2 sentences on what the meeting covered and concluded (not just the title).\n- decisions: every conclusion the group reached. Include anything phrased as 'agreed', 'decided', 'Decision:', 'approved', 'will ship', or 'blocks the release'. Write each as a short statement. Do not put owner tasks here.\n- action_items: tasks assigned to a person, as {\"owner\", \"task\"}; keep due dates in the task text.\n- open_questions: questions or issues still unresolved.\nUse [] when there are none. Do not invent facts.",
+  "user_template": "Extract meeting notes from the following text:\n\n{notes}",
+  "examples": [
+    {
+      "input": "Weekly ops sync. Maria: the courier contract renews in May. We agreed to switch couriers to FastShip from June. Tom will draft the FastShip SLA by Friday. Decision: pause weekend deliveries during the switch. Still unclear whether the price covers rural areas.",
+      "output": {
+        "summary": "Ops sync on the courier contract; the team agreed to move to FastShip from June and pause weekend deliveries during the switch.",
+        "decisions": ["Switch couriers to FastShip from June", "Pause weekend deliveries during the switch"],
+        "action_items": [{"owner": "Tom", "task": "Draft the FastShip SLA by Friday"}],
+        "open_questions": ["Does the FastShip price cover rural areas?"]
+      }
+    }
+  ],
+  "format": {
+    "type": "object",
+    "properties": {
+      "summary": {"type": "string"},
+      "decisions": {"type": "array", "items": {"type": "string"}},
+      "action_items": {"type": "array", "items": {"type": "object", "properties": {"owner": {"type": "string"}, "task": {"type": "string"}}, "required": ["owner", "task"]}},
+      "open_questions": {"type": "array", "items": {"type": "string"}}
+    },
+    "required": ["summary", "decisions", "action_items", "open_questions"]
+  },
+  "options": {"temperature": 0}
+}

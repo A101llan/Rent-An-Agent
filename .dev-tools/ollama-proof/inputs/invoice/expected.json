@@ -1,0 +1,27 @@
+{
+  "01-office-supplies-ocr.txt": {
+    "supplier": ["nairobi office supplies"], "invoice_number": "NOS/2026/0918", "total": 61016.00, "tax": 8416.00,
+    "due_date": "2026-10-14", "invoice_date": "2026-09-14", "currency": "KES", "line_items": 5,
+    "anomalies_expected": [{"id": "duplicate ink cartridge line", "any": ["duplicate"]}],
+    "anomalies_forbidden": [{"id": "false arithmetic alarm", "any": ["but total shows", "but subtotal shows", "Tax is"]}]
+  },
+  "02-hosting-email.md": {
+    "supplier": ["savannah cloud"], "invoice_number": "SCH-INV-00731", "total": 380.76, "tax": 46.76,
+    "due_date": "2026-08-28", "invoice_date": "2026-09-03", "currency": "USD", "line_items": 4,
+    "anomalies_expected": [
+      {"id": "bandwidth 2 x 12.50 != 35.00", "any": ["bandwidth"]},
+      {"id": "VAT 14% not 16%", "any": ["14.0%", "14%"]},
+      {"id": "due date before invoice date", "any": ["before invoice date"]}
+    ],
+    "anomalies_forbidden": []
+  },
+  "03-hardware-nakuru.docx": {
+    "supplier": ["mwangi"], "invoice_number": "MSH-2026-114", "total": 46960.00, "tax": 6440.00,
+    "due_date": "", "invoice_date": "2026-09-22", "currency": "KES", "line_items": 4,
+    "anomalies_expected": [
+      {"id": "subtotal + VAT (46,690) != printed total 46,960", "any": ["but total shows"]},
+      {"id": "no due date", "any": ["no due date"]}
+    ],
+    "anomalies_forbidden": [{"id": "customer mistaken for supplier", "any": []}]
+  }
+}

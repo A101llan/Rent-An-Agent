@@ -1,0 +1,16 @@
+{
+  "name": "Meeting Notes Agent (Local)",
+  "version": "1.0.0",
+  "runtime": {
+    "type": "local",
+    "entrypoint": "meeting-notes",
+    "min_sidecar_version": "0.1.0"
+  },
+  "capabilities": ["meeting_summarization", "action_item_extraction"],
+  "permissions": [],
+  "resources": {
+    "cpu": 1,
+    "memory_mb": 1024,
+    "timeout_seconds": 300
+  }
+}

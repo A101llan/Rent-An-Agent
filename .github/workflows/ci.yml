@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  api:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: agenthub
+          POSTGRES_PASSWORD: agenthub
+          POSTGRES_DB: agenthub_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Install API dependencies
+        run: pip install -r apps/api/requirements.txt
+      - name: Lint
+        run: pip install ruff && ruff check apps/api/app
+      - name: Test
+        env:
+          DATABASE_URL: postgresql+asyncpg://agenthub:agenthub@localhost:5432/agenthub_test
+          REDIS_URL: redis://localhost:6379/0
+          JWT_SECRET: test-secret
+        run: cd apps/api && pytest tests/ -v
+
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install and build
+        run: |
+          cd apps/web
+          npm ci
+          npm run lint
+          npm run build

@@ -1,0 +1,8 @@
+{
+  "_help": "Copy to %LOCALAPPDATA%\\AgentHub\\LocalRuntime\\config.json and edit. Environment variables override these. Restart the runtime after changes.",
+  "AGENTHUB_API_BASE": "http://127.0.0.1:8000",
+  "LOCAL_RUNTIME_MODEL": "llama3.2:1b",
+  "LOCAL_RUNTIME_PROMPT_FILE": "",
+  "OLLAMA_BASE_URL": "http://127.0.0.1:11434",
+  "PORT": "8765"
+}

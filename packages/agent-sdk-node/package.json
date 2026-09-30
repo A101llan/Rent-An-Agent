@@ -1,0 +1,22 @@
+{
+  "name": "@agenthub/agent-sdk-node",
+  "version": "0.1.0",
+  "description": "AgentHub Node.js SDK for Agent Developers",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "axios": "^1.6.0",
+    "@opentelemetry/api": "^1.8.0",
+    "@opentelemetry/sdk-node": "^0.48.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "@types/node": "^22.0.0"
+  },
+  "author": "AgentHub",
+  "license": "UNLICENSED"
+}

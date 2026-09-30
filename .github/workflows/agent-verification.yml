@@ -1,0 +1,64 @@
+name: Agent Verification
+
+on:
+  push:
+    paths:
+      - 'agents/**'
+  pull_request:
+    paths:
+      - 'agents/**'
+
+jobs:
+  verify-agents:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        agent: [demo-agent, invoice-agent, asset-agent, freqtrade, hummingbot, trading-agents]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check if agent exists
+        id: check_agent
+        run: |
+          if [ -d "agents/${{ matrix.agent }}" ]; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Setup Python
+        if: steps.check_agent.outputs.exists == 'true'
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Run Bandit Security Scan (Python)
+        if: steps.check_agent.outputs.exists == 'true'
+        run: |
+          pip install bandit
+          if ls agents/${{ matrix.agent }}/*.py 1> /dev/null 2>&1; then
+            bandit -r agents/${{ matrix.agent }} -c bandit.yaml || true
+          fi
+
+      - name: Setup Node.js
+        if: steps.check_agent.outputs.exists == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Run ESLint (JS/TS)
+        if: steps.check_agent.outputs.exists == 'true'
+        run: |
+          if [ -f "agents/${{ matrix.agent }}/package.json" ]; then
+            cd agents/${{ matrix.agent }}
+            npm install
+            npm run lint --if-present
+          fi
+
+      - name: Build Docker Image
+        if: steps.check_agent.outputs.exists == 'true'
+        run: |
+          cd agents/${{ matrix.agent }}
+          if [ -f "Dockerfile" ]; then
+            docker build -t agenthub-${{ matrix.agent }}:test .
+          fi

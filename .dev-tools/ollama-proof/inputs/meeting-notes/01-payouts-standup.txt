@@ -1,0 +1,37 @@
+Payouts squad standup - Tue 29 Sep (auto-transcribed by phone, not cleaned up)
+
+[09:02] Wanjiku (Jiku): ok ok tuanze, um, can everyone hear me? Brayo you're on mute
+[09:02] Brian Otieno: sorry sorry, niko hapa. yeah yeah
+[09:03] Jiku: so first thing, the the payout retries. last week we said we'd just retry every 5 min
+[09:03] Kevo: yeah but-
+[09:03] Fatuma Hassan: -sorry go ahead
+[09:03] Kevo: no no you go
+[09:04] Fatuma Hassan: I was just saying Safaricom rate limits us, like, if we hammer Daraja every 5 min we get throttled, it happend on saturday
+[09:04] Brian Otieno: [inaudible] ...throttled for like 40 minutes
+[09:05] Jiku: ok so decision: exponential backoff, max 6 tries, not the 5 min thing. everyone ok?
+[09:05] Brian Otieno: sawa
+[09:05] Fatuma Hassan: yes
+[09:06] Kevo: I'll write the backoff thing, give me till thursday
+[09:06] Jiku: thanks Kevo
+[09:07] Jiku: next, the dashboard migration to Postgres 16. Brayo?
+[09:07] Brian Otieno: uh yeah so I think we should do it this sprint, like, this friday
+[09:08] Fatuma Hassan: this friday?? we have the Equity bank demo on friday
+[09:08] Jiku: hmm true. ok let's do the migration friday night after the demo then
+[09:09] Brian Otieno: ok I can babysit it friday night
+[09:09] Kevo: (laughs) pole
+[09:10] Fatuma Hassan: btw did anyone see the M-Pesa statement recon failed again for 2 merchants
+[09:10] Jiku: yeah that's the known one, ignore for now
+[09:11] Kevo: also the staging box is super slow, is it just me
+[09:11] Brian Otieno: not just you
+[09:12] Jiku: actually no, wait - scrap the friday night thing. no migrations this sprint at all. we move Postgres 16 to next sprint. too risky with the demo, if it breaks saturday we're dead
+[09:12] Brian Otieno: fine by me honestly, I didnt want friday night anyway
+[09:13] Fatuma Hassan: someone needs to update the on-call runbook for the new backoff, the on-call people wont know why payouts are delayed
+[09:13] Jiku: yeah good point, somebody should do that
+[09:13] [silence]
+[09:14] Kevo: also who's paying for the sandbox renewal, the Daraja sandbox cert expires on the 14th
+[09:14] Jiku: not sure, I'll ask finance... actually no, Fatuma can you ask Mercy in finance, you sit next to her
+[09:15] Fatuma Hassan: ok nitamuuliza leo
+[09:15] Brian Otieno: do we still need the old USSD flow or can we kill it?
+[09:16] Jiku: good q, parking that, need usage numbers from Kevo's analytics first
+[09:16] Kevo: I dont have those numbers yet tbh
+[09:16] Jiku: ok asante everyone, tuonane kesho

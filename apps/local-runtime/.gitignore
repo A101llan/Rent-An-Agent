@@ -1,0 +1,11 @@
+# local-runtime secrets/state (session tokens live here)
+.session.json
+.dev-hire*.json
+usage-pending.jsonl
+usage-failed.jsonl
+*.jsonl.tmp
+out/
+__pycache__/
+.venv/
+.build-venv/
+build/

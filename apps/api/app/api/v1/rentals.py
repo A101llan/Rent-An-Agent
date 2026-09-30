@@ -1,11 +1,13 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Header, Request
+from pydantic import ValidationError
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.core.deps import RequireCustomer, get_db
+from app.core.errors import AppError
 from app.core.session_deps import RequireSession, RequireSessionStrict
 from app.models import Agent, CustomerProfile, Rental, RentalSession
 from app.schemas.embed import EmbedSnippetResponse
@@ -342,8 +344,12 @@ async def claim_local_session(session: RequireSessionStrict, db: DbSession, requ
 
 
 @router.post("/sessions/{session_id}/usage", response_model=UsageRecordResponse, status_code=201)
-async def report_session_usage(body: LocalUsageRequest, session: RequireSessionStrict, db: DbSession):
+async def report_session_usage(request: Request, session: RequireSessionStrict, db: DbSession):
     """Device sidecar reports metering for a local session. Writes a UsageRecord only."""
+    try:
+        body = LocalUsageRequest.model_validate(await request.json())
+    except (ValidationError, TypeError, ValueError) as exc:
+        raise AppError(422, "VALIDATION_ERROR", "Request validation failed") from exc
     record = await rental_service.record_local_usage(
         db,
         session,

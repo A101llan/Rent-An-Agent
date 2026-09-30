@@ -1,4 +1,4 @@
-"""Local-rent MVP (cloud half): hire entitlement, sidecar claim/usage, execute guard.
+﻿"""Local-rent MVP (cloud half): hire entitlement, sidecar claim/usage, execute guard.
 
 The local agent fixture is built here (not via seed data) with a manifest whose
 runtime.type == "local" and no image/digest, so it doesn't depend on the schema
@@ -252,12 +252,12 @@ async def test_claim_rejects_other_users_jwt(client: AsyncClient, local_agent):
         f"/api/v1/sessions/{data['session']['id']}/local/claim",
         headers={"Authorization": f"Bearer {local_agent['cust_b_token']}"},
     )
-    assert resp.status_code == 403
-    assert _err(resp)["code"] == "FORBIDDEN"
+    assert resp.status_code == 404
+    assert _err(resp)["code"] == "SESSION_NOT_FOUND"
 
 
 @pytest.mark.asyncio
-async def test_claim_unknown_session_404(client: AsyncClient, local_agent):
+async def test_claim_unknown_session_auth_modes(client: AsyncClient, local_agent):
     unknown = uuid4()
     resp = await client.post(
         f"/api/v1/sessions/{unknown}/local/claim", headers={"Authorization": f"Bearer {local_agent['cust_a_token']}"}
@@ -265,7 +265,8 @@ async def test_claim_unknown_session_404(client: AsyncClient, local_agent):
     assert resp.status_code == 404
     assert _err(resp)["code"] == "SESSION_NOT_FOUND"
     resp = await client.post(f"/api/v1/sessions/{unknown}/local/claim", headers={"X-Session-Token": "x"})
-    assert resp.status_code == 404
+    assert resp.status_code == 401
+    assert _err(resp)["code"] == "INVALID_SESSION_TOKEN"
 
 
 @pytest.mark.asyncio
@@ -358,9 +359,11 @@ async def test_usage_rejects_invalid_auth(client: AsyncClient, local_agent, db_s
     r = await client.post(
         f"/api/v1/sessions/{sid}/usage", json=body, headers={"Authorization": f"Bearer {local_agent['cust_b_token']}"}
     )
-    assert r.status_code == 403
-    r = await client.post(f"/api/v1/sessions/{uuid4()}/usage", json=body, headers={"X-Session-Token": "nope"})
     assert r.status_code == 404
+    assert _err(r)["code"] == "SESSION_NOT_FOUND"
+    r = await client.post(f"/api/v1/sessions/{uuid4()}/usage", json=body, headers={"X-Session-Token": "nope"})
+    assert r.status_code == 401
+    assert _err(r)["code"] == "INVALID_SESSION_TOKEN"
     assert await _usage_count(db_session, sid) == 0
 
 
@@ -395,6 +398,7 @@ async def test_usage_rejects_invalid_body(client: AsyncClient, local_agent, db_s
     sid = data["session"]["id"]
     r = await client.post(f"/api/v1/sessions/{sid}/usage", json=payload, headers={"X-Session-Token": data["session_token"]})
     assert r.status_code == 422
+    assert _err(r)["code"] == "VALIDATION_ERROR"
     assert await _usage_count(db_session, sid) == 0
 
 
@@ -444,3 +448,4 @@ async def test_execute_on_local_session_returns_runtime_local(client: AsyncClien
         assert err["message"]
         assert "request_id" in err
     assert fake.calls == 0
+

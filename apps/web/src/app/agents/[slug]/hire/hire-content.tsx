@@ -145,6 +145,7 @@ export default function HirePageContent() {
         <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
           <a
             href={LOCAL_RUNTIME_DOWNLOAD_URL}
+            download
             className="inline-flex items-center justify-center gap-2 rounded-lg bg-indigo-600 px-6 py-3 text-center text-sm font-medium hover:bg-indigo-500"
           >
             <Download className="h-4 w-4" />

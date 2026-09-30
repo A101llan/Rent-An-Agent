@@ -4,10 +4,11 @@ import { useState } from "react";
 import { Check, Copy, Laptop } from "lucide-react";
 import type { AgentDetail, HireResponse } from "@/lib/api";
 
-// TODO(local-runtime): point at the real AgentHub Local (Windows sidecar) installer once
-// apps/local-runtime ships a packaged artifact. No installer or download route exists yet.
+// Installer served from apps/web/public/downloads; override with a hosted URL via env.
 export const LOCAL_RUNTIME_DOWNLOAD_URL =
-  process.env.NEXT_PUBLIC_LOCAL_RUNTIME_DOWNLOAD_URL || "/downloads/AgentHubLocalSetup.exe";
+  process.env.NEXT_PUBLIC_LOCAL_RUNTIME_DOWNLOAD_URL || "/downloads/AgentHubLocalRuntimeSetup-0.1.0.exe";
+export const LOCAL_RUNTIME_VERSION = "0.1.0";
+export const LOCAL_RUNTIME_SIZE_LABEL = "19 MB";
 
 export function isLocalAgent(agent: Pick<AgentDetail, "manifest">): boolean {
   return agent.manifest?.runtime?.type === "local";
@@ -67,6 +68,10 @@ export function LocalRuntimeSetupPanel({ claim }: { claim: LocalClaim }) {
         <li>Paste your session ID and session token into AgentHub Local.</li>
         <li>Pick your files — they stay on your computer.</li>
       </ol>
+      <p className="mt-3 text-xs text-zinc-500">
+        Windows 10/11 only. Requires Ollama. v{LOCAL_RUNTIME_VERSION}, {LOCAL_RUNTIME_SIZE_LABEL}. Windows may warn about an
+        unknown publisher: choose More info, then Run anyway.
+      </p>
 
       {claim.claimToken ? (
         <div className="mt-4 space-y-3">

@@ -32,6 +32,8 @@ Uses `RUNTIME_PROVIDER=mock` — no container virtualization needed. Redis on Wi
 
 **Renter API:** See [docs/RENTER_API.md](docs/RENTER_API.md) and `scripts/examples/rent-and-execute.py`.
 
+**Local runtime contract:** See [docs/local-runtime-contract.md](docs/local-runtime-contract.md).
+
 - **Web:** http://localhost:3000
 - **API docs:** http://localhost:8000/docs
 - **Runtime manager:** http://localhost:8001/health

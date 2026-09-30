@@ -340,7 +340,7 @@ def _extract_chunk(chunk: str, head: str, prompt: dict, model: str, notes: str, 
         td = pd.get("user_template") or DEFAULT_USER_TEMPLATE
         ti = pi.get("user_template") or DEFAULT_USER_TEMPLATE
         user_d = td.format(notes=head + chunk)
-        if prompt.get("decision_cues"):
+        if prompt.get("decision_cues") in (True, "hint"):  # "post" = union only, no hint in the prompt
             cues = decision_cues(chunk)
             if cues:
                 user_d += ("\n\nLines that may contain decisions (keyword scan - keep only real decisions that were "

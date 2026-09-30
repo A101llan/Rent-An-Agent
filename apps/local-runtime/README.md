@@ -24,8 +24,8 @@ Data dir (`LOCAL_RUNTIME_HOME`): this folder in dev; `%LOCALAPPDATA%\AgentHub\Lo
 |-----|---------|-------|
 | `HOST` / `PORT` | `127.0.0.1` / `8765` | installed build always binds 127.0.0.1 |
 | `OLLAMA_BASE_URL` | `http://127.0.0.1:11434` | |
-| `LOCAL_RUNTIME_MODEL` | `llama3.2:1b` | sidecar model; falls back to `OLLAMA_MODEL`, then `llama3.2:1b`. Owned by the Ollama Integrator |
-| `LOCAL_RUNTIME_PROMPT_FILE` | unset (built-in prompt) | optional prompt override, `.txt` (system prompt) or `.json` (see below). Relative paths resolve against the data dir, then the install dir |
+| `LOCAL_RUNTIME_MODEL` | `llama3.2:1b` | sidecar model; falls back to `OLLAMA_MODEL`, then `config.defaults.json`, then `llama3.2:1b`. Owned by the Ollama Integrator |
+| `LOCAL_RUNTIME_PROMPT_FILE` | `prompts/decisions-v2.json` (from `config.defaults.json`; `builtin` = built-in prompt) | optional prompt override, `.txt` (system prompt) or `.json` (see below). Relative paths resolve against the data dir, then the install dir |
 | `OLLAMA_TIMEOUT` | `300` | seconds per extraction |
 | `LOCAL_RUNTIME_ALLOW_CANNED` | off | `1` = return labeled canned demo notes if Ollama fails (never metered). Off = job fails |
 | `AGENTHUB_API_BASE` | `http://127.0.0.1:8000` | apps/api |
@@ -36,8 +36,8 @@ Data dir (`LOCAL_RUNTIME_HOME`): this folder in dev; `%LOCALAPPDATA%\AgentHub\Lo
 | `LOCAL_RUNTIME_USAGE_QUEUE` / `_FAILED` | `<data dir>\usage-pending.jsonl` / `usage-failed.jsonl` | |
 
 Prompt override JSON: `{ "name", "system", "user_template" (must contain {notes}), "examples": [{"input", "output"}],
-"format": "json" | <JSON schema>, "options": {ollama options} }`. `prompts\decisions-v2.json` is an **opt-in**
-experiment (explicit decisions instructions + one few-shot example + schema + temperature 0); it is not the default.
+"format": "json" | <JSON schema>, "options": {ollama options} }`. `prompts\decisions-v2.json` is the **default**
+prompt (explicit decisions instructions + one few-shot example + schema + temperature 0); see *Default local model & prompt*.
 `/health` and every output JSON (`model_meta`) show the model and prompt that were used.
 
 Inputs: **.docx** (paragraphs + tables, in document order, via python-docx), `.txt`, `.md`.
@@ -49,7 +49,9 @@ Auth header on both: `X-Session-Token: <session_token from hire>` (the API also 
 **Claim** `POST {API}/api/v1/sessions/{session_id}/local/claim` (empty JSON body)
 
 - `200` → `{ session_id, expires_at, manifest, agent_slug, agent_version, runtime_provider: "local" }`
-- `401/403` bad auth · `404` unknown session · `400/409` not a local session (`SESSION_NOT_LOCAL`) · `410` expired
+- Errors use the envelope `{detail:{error:{code,message,request_id}}}`; the sidecar keys on `code` and logs it.
+  `401 INVALID_SESSION_TOKEN` (unknown session or bad token with X-Session-Token) · `404 SESSION_NOT_FOUND` (owner JWT) ·
+  `409 SESSION_NOT_LOCAL` · `410 SESSION_EXPIRED` · `422 VALIDATION_ERROR`. Claim never extends `expires_at`.
 - Sidecar stores `session_id`, `expires_at`, `manifest` on 200. **Any non-200 → fail closed**: the binding is
   cleared and jobs are refused (HTTP 403 `session_not_bound`).
 - API unreachable (refused/timeout) → fail closed (`503 api_unreachable`) unless `LOCAL_RUNTIME_OFFLINE_STUB=1`,
@@ -62,10 +64,11 @@ Auth header on both: `X-Session-Token: <session_token from hire>` (the API also 
 - After each successful job: `requests`/`1`/`count`, then `input_tokens` and `output_tokens` (`unit: tokens`) when > 0.
 - Outcomes recorded per row in the output JSON `usage_report`:
   - `sent` (2xx; includes the cloud row)
-  - `queued` (API unreachable → appended to `usage-pending.jsonl`, sync later)
-  - `failed` (non-2xx → logged to `usage-failed.jsonl`; not retried automatically, not reported as success)
+  - `queued` (network error or **5xx** → appended to `usage-pending.jsonl`, sync later)
+  - `failed` (any **4xx**, incl. 422 → logged by code to `usage-failed.jsonl` and dropped; never queued or retried)
 - Sync the queue: `python -m app.usage_sync [--hire-file .dev-hire-local.json]` or `POST /usage/sync`.
-  Rows are removed only on 2xx; otherwise kept with `last_error`/`attempts`.
+  Sync follows the same rules: 2xx → removed; network/5xx → kept (`last_error`, `attempts`); 4xx → `usage-failed.jsonl`, removed.
+- Contract tests (mocked HTTP): `python -m pytest -q tests`
 
 Execute on a local session returns `400 RUNTIME_LOCAL` from the API (the sidecar never calls execute or runtime-manager).
 
@@ -158,3 +161,70 @@ agenthub-local-runtime.exe version    # 0.1.0
 ```
 
 Logs: `%LOCALAPPDATA%\AgentHub\LocalRuntime\logs\sidecar.log`.
+
+### Hosting the installer
+
+- The build writes the installer to `build\installer\` (`AgentHubLocalRuntimeSetup-0.1.0.exe`).
+- For local dev a copy is served from `apps/web/public/downloads/` (git-ignored) at `/downloads/AgentHubLocalRuntimeSetup-0.1.0.exe`.
+- In production, host it on a GitHub release or CDN and set `NEXT_PUBLIC_LOCAL_RUNTIME_DOWNLOAD_URL` in apps/web to that URL.
+
+## Default local model & prompt
+
+**Defaults: model `llama3.2:1b`, prompt `prompts\decisions-v2.json`** (explicit decisions instruction, one few-shot
+example, JSON schema, temperature 0). They come from the checked-in `config.defaults.json`:
+
+```json
+{ "model": "llama3.2:1b", "prompt_file": "prompts/decisions-v2.json" }
+```
+
+Why (on `fixtures\sample-meeting.docx`, which has 2 decisions, 3 action items and 2 open questions; runs in
+`out\model-compare\summary.json`):
+
+- `llama3.2:1b` + built-in prompt was unstable: it found 0/1/2, 1/1/1 and 0/3/2 (decisions/actions/questions) across runs.
+- `llama3.2:1b` + `decisions-v2` found 2/3/2 in two runs, about 40 s each, 583 input / 181 output tokens.
+- The 3b models (`llama3.2:3b`, `qwen2.5:3b`) don't fit in the free RAM of a typical 8 GB laptop, so they aren't the default.
+- The 1b model still makes mistakes. One later default check (`out\default-check\`) found 2/3/1, but one of those
+  "decisions" was really an open question. Always review the notes.
+
+Settings and precedence (first match wins):
+
+| What | 1. env var | 2. `config.json` in the data dir | 3. `config.defaults.json` | 4. hardcoded |
+|------|------------|----------------------------------|---------------------------|--------------|
+| model | `LOCAL_RUNTIME_MODEL`, then `OLLAMA_MODEL` | same keys | `model` | `llama3.2:1b` |
+| prompt | `LOCAL_RUNTIME_PROMPT_FILE` | same key | `prompt_file` | built-in prompt |
+
+- `config.defaults.json` sits next to `app\` in dev and next to `agenthub-local-runtime.exe` in the installed build
+  (`installer\build.ps1` copies it there along with `prompts\`). Its `prompt_file` is resolved against that folder,
+  never the current directory. A relative `LOCAL_RUNTIME_PROMPT_FILE` resolves against the data dir, then the install dir.
+- `LOCAL_RUNTIME_PROMPT_FILE=builtin` (or an empty value in `config.json`) selects the built-in prompt. On Windows,
+  setting an env var to an empty string deletes it, so use `builtin` there.
+- If the prompt file is missing or invalid, the runtime logs a warning and uses the built-in prompt.
+- `/health`, `agenthub-local-runtime.exe check` and every output JSON (`model_meta`) show the model and prompt
+  that were actually used.
+
+Override for one shell (dev):
+
+```powershell
+$env:LOCAL_RUNTIME_MODEL = 'llama3.2:3b'          # needs more free RAM (see below)
+$env:LOCAL_RUNTIME_PROMPT_FILE = 'builtin'        # or a path to your own .json/.txt prompt
+```
+
+Override for the installed build: `%LOCALAPPDATA%\AgentHub\LocalRuntime\config.json`, then restart the runtime:
+
+```json
+{
+  "LOCAL_RUNTIME_MODEL": "llama3.2:1b",
+  "LOCAL_RUNTIME_PROMPT_FILE": "builtin"
+}
+```
+
+Resource needs (measured on the dev PC: i7-7600U, 7.9 GB RAM, CPU-only, no GPU used; 30 Sep 2026):
+
+- Disk: `llama3.2:1b` is **1.3 GB** (`ollama list`).
+- RAM while loaded: `ollama ps` reports **1.5 GB** (100% CPU, 4096 context). The `llama-server` runner's working set was
+  **~1.5 GB** (1530 MB; 1552 MB private), and `ollama serve` used about another 50-85 MB. The runner stays loaded
+  for about 5 minutes after a run (Ollama keep-alive).
+- Speed: about **40 s per short meeting** (about 1 page, ~580 input tokens) on this CPU. Most of that is generation at ~7.6 tokens/s.
+  A repeat run of the same file took ~24 s because Ollama reused its prompt cache.
+- Recommendation: at least **8 GB system RAM with about 2-3 GB free** before starting a run. With ~1 GB free, the
+  dev PC briefly became unreachable while a 3b model was running. Close other heavy apps before a run.

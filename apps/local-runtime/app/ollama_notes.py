@@ -1,8 +1,9 @@
 """Meeting-notes extraction via local Ollama (ported from agents/meeting-notes-agent/main.py).
 
 Model and prompt come from config (owned by the Ollama Integrator):
-  LOCAL_RUNTIME_MODEL (fallback OLLAMA_MODEL, then llama3.2:1b)
-  LOCAL_RUNTIME_PROMPT_FILE (optional override; unset -> built-in prompt below)
+  LOCAL_RUNTIME_MODEL (fallback OLLAMA_MODEL, then config.defaults.json, then llama3.2:1b)
+  LOCAL_RUNTIME_PROMPT_FILE (unset -> config.defaults.json prompt_file, i.e. prompts/decisions-v2.json;
+                             "" or "builtin" -> built-in prompt below)
 """
 
 from __future__ import annotations

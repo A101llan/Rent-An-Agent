@@ -1,0 +1,283 @@
+{
+  "generated_at": "2026-09-30T12:09:25+03:00",
+  "timezone": "Africa/Nairobi (EAT, UTC+3)",
+  "helper": "packages/agent-sdk/src/marketplace_sdk/ollama_local.py::check_ollama",
+  "config": {
+    "model": "llama3.2:1b",
+    "ollama_url": "http://127.0.0.1:11434",
+    "num_ctx": 4096,
+    "keep_alive": "15m",
+    "meeting_notes_prompt": "meeting-notes.v2-decisions-first",
+    "defaults_file": "C:\\Users\\wambua\\Documents\\AgentHub\\packages\\agent-sdk\\src\\marketplace_sdk\\local_llm_defaults.json",
+    "sources": {
+      "model": "file:local_llm_defaults.json",
+      "ollama_url": "file:local_llm_defaults.json",
+      "num_ctx": "file:local_llm_defaults.json",
+      "keep_alive": "file:local_llm_defaults.json",
+      "meeting_notes_prompt": "file:local_llm_defaults.json"
+    }
+  },
+  "all_pass": false,
+  "cases": [
+    {
+      "case": "ollama up, configured model",
+      "expected_code": "ok",
+      "got_code": "ok",
+      "pass": true,
+      "note": "",
+      "result": {
+        "ok": true,
+        "code": "ok",
+        "message": "Ollama 0.32.13 on http://127.0.0.1:11434 with llama3.2:1b ready",
+        "base_url": "http://127.0.0.1:11434",
+        "model": "llama3.2:1b",
+        "ollama_version": "0.32.13",
+        "models_available": [
+          "llama3.2:1b",
+          "llama3.2:3b",
+          "qwen2.5:3b"
+        ],
+        "latency_ms": 176
+      }
+    },
+    {
+      "case": "ollama up, configured model, probe (load + 1 token)",
+      "expected_code": "ok",
+      "got_code": "ok",
+      "pass": true,
+      "note": "",
+      "result": {
+        "ok": true,
+        "code": "ok",
+        "message": "Ollama 0.32.13 on http://127.0.0.1:11434 with llama3.2:1b ready",
+        "base_url": "http://127.0.0.1:11434",
+        "model": "llama3.2:1b",
+        "ollama_version": "0.32.13",
+        "models_available": [
+          "llama3.2:1b",
+          "llama3.2:3b",
+          "qwen2.5:3b"
+        ],
+        "latency_ms": 18206
+      }
+    },
+    {
+      "case": "model missing (nonexistent name)",
+      "expected_code": "model_missing",
+      "got_code": "model_missing",
+      "pass": true,
+      "note": "",
+      "result": {
+        "ok": false,
+        "code": "model_missing",
+        "message": "Model 'llama3.2:does-not-exist' is not pulled in Ollama 0.32.13. Run: ollama pull llama3.2:does-not-exist. Available: llama3.2:1b, llama3.2:3b, qwen2.5:3b",
+        "base_url": "http://127.0.0.1:11434",
+        "model": "llama3.2:does-not-exist",
+        "ollama_version": "0.32.13",
+        "models_available": [
+          "llama3.2:1b",
+          "llama3.2:3b",
+          "qwen2.5:3b"
+        ],
+        "latency_ms": 197
+      }
+    },
+    {
+      "case": "model missing (plausible but not pulled)",
+      "expected_code": "model_missing",
+      "got_code": "model_missing",
+      "pass": true,
+      "note": "",
+      "result": {
+        "ok": false,
+        "code": "model_missing",
+        "message": "Model 'phi3:mini' is not pulled in Ollama 0.32.13. Run: ollama pull phi3:mini. Available: llama3.2:1b, llama3.2:3b, qwen2.5:3b",
+        "base_url": "http://127.0.0.1:11434",
+        "model": "phi3:mini",
+        "ollama_version": "0.32.13",
+        "models_available": [
+          "llama3.2:1b",
+          "llama3.2:3b",
+          "qwen2.5:3b"
+        ],
+        "latency_ms": 145
+      }
+    },
+    {
+      "case": "wrong host: http://localhost:11434",
+      "expected_code": "wrong_host",
+      "got_code": "wrong_host",
+      "pass": true,
+      "note": "localhost may resolve to ::1 on Windows",
+      "result": {
+        "ok": false,
+        "code": "wrong_host",
+        "message": "Ollama must be reached on 127.0.0.1:11434 only; got host 'localhost' ('localhost' can resolve to ::1 on Windows; Ollama listens on 127.0.0.1). Local agents never send data off-device.",
+        "base_url": "http://localhost:11434",
+        "model": "llama3.2:1b",
+        "ollama_version": null,
+        "models_available": [],
+        "latency_ms": 0
+      }
+    },
+    {
+      "case": "wrong host: http://0.0.0.0:11434",
+      "expected_code": "wrong_host",
+      "got_code": "wrong_host",
+      "pass": true,
+      "note": "bind-all address",
+      "result": {
+        "ok": false,
+        "code": "wrong_host",
+        "message": "Ollama must be reached on 127.0.0.1:11434 only; got host '0.0.0.0'. Local agents never send data off-device.",
+        "base_url": "http://0.0.0.0:11434",
+        "model": "llama3.2:1b",
+        "ollama_version": null,
+        "models_available": [],
+        "latency_ms": 0
+      }
+    },
+    {
+      "case": "wrong host: http://192.168.1.50:11434",
+      "expected_code": "wrong_host",
+      "got_code": "wrong_host",
+      "pass": true,
+      "note": "LAN host",
+      "result": {
+        "ok": false,
+        "code": "wrong_host",
+        "message": "Ollama must be reached on 127.0.0.1:11434 only; got host '192.168.1.50'. Local agents never send data off-device.",
+        "base_url": "http://192.168.1.50:11434",
+        "model": "llama3.2:1b",
+        "ollama_version": null,
+        "models_available": [],
+        "latency_ms": 0
+      }
+    },
+    {
+      "case": "wrong host: http://ollama.example.com:11434",
+      "expected_code": "wrong_host",
+      "got_code": "wrong_host",
+      "pass": true,
+      "note": "remote host",
+      "result": {
+        "ok": false,
+        "code": "wrong_host",
+        "message": "Ollama must be reached on 127.0.0.1:11434 only; got host 'ollama.example.com'. Local agents never send data off-device.",
+        "base_url": "http://ollama.example.com:11434",
+        "model": "llama3.2:1b",
+        "ollama_version": null,
+        "models_available": [],
+        "latency_ms": 0
+      }
+    },
+    {
+      "case": "wrong host: https://127.0.0.1:11434",
+      "expected_code": "wrong_host",
+      "got_code": "wrong_host",
+      "pass": true,
+      "note": "wrong scheme",
+      "result": {
+        "ok": false,
+        "code": "wrong_host",
+        "message": "Ollama URL must be http://127.0.0.1:11434 (got scheme 'https')",
+        "base_url": "https://127.0.0.1:11434",
+        "model": "llama3.2:1b",
+        "ollama_version": null,
+        "models_available": [],
+        "latency_ms": 0
+      }
+    },
+    {
+      "case": "wrong host: http://127.0.0.1:11435",
+      "expected_code": "wrong_host",
+      "got_code": "wrong_host",
+      "pass": true,
+      "note": "wrong port",
+      "result": {
+        "ok": false,
+        "code": "wrong_host",
+        "message": "Ollama must be on port 11434; got 11435",
+        "base_url": "http://127.0.0.1:11435",
+        "model": "llama3.2:1b",
+        "ollama_version": null,
+        "models_available": [],
+        "latency_ms": 0
+      }
+    },
+    {
+      "case": "not running (closed port 11499, allowlist relaxed in-process)",
+      "expected_code": "not_running",
+      "got_code": "not_running",
+      "pass": true,
+      "note": "simulates Ollama stopped without stopping it",
+      "result": {
+        "ok": false,
+        "code": "not_running",
+        "message": "Ollama is not running on http://127.0.0.1:11499 ([WinError 10061] No connection could be made because the target machine actively refused it). Start the Ollama app or run `ollama serve`.",
+        "base_url": "http://127.0.0.1:11499",
+        "model": "llama3.2:1b",
+        "ollama_version": null,
+        "models_available": [],
+        "latency_ms": 2322
+      }
+    },
+    {
+      "case": "not ollama (AgentHub API on :8000, allowlist relaxed in-process)",
+      "expected_code": "not_ollama",
+      "got_code": "not_running",
+      "pass": false,
+      "note": "another HTTP service on the port",
+      "result": {
+        "ok": false,
+        "code": "not_running",
+        "message": "Ollama is not running on http://127.0.0.1:8000 ([WinError 10061] No connection could be made because the target machine actively refused it). Start the Ollama app or run `ollama serve`.",
+        "base_url": "http://127.0.0.1:8000",
+        "model": "llama3.2:1b",
+        "ollama_version": null,
+        "models_available": [],
+        "latency_ms": 2391
+      }
+    },
+    {
+      "case": "chat_json refuses non-loopback URL before sending data",
+      "expected_code": "wrong_host",
+      "got_code": "wrong_host",
+      "pass": true,
+      "note": "",
+      "result": {
+        "code": "wrong_host",
+        "message": "Ollama must be reached on 127.0.0.1:11434 only; got host '10.0.0.5'. Local agents never send data off-device."
+      }
+    },
+    {
+      "case": "meeting-notes /invoke with AGENTHUB_LOCAL_MODEL=llama3.2:does-not-exist",
+      "expected_code": "model_missing",
+      "got_code": "model_missing",
+      "pass": true,
+      "result": {
+        "status": "failed",
+        "error": {
+          "code": "model_missing",
+          "message": "Model 'llama3.2:does-not-exist' is not pulled in Ollama 0.32.13. Run: ollama pull llama3.2:does-not-exist. Available: llama3.2:1b, llama3.2:3b, qwen2.5:3b"
+        },
+        "usage": {
+          "input_tokens": 0,
+          "output_tokens": 0
+        },
+        "source": "ollama"
+      },
+      "note": "fails clearly; no canned notes"
+    }
+  ],
+  "cli": {
+    "ok_run": {
+      "exit_code": 0,
+      "stdout": "{\n  \"ok\": true,\n  \"code\": \"ok\",\n  \"message\": \"Ollama 0.32.13 on http://127.0.0.1:11434 with llama3.2:1b ready\",\n  \"base_url\": \"http://127.0.0.1:11434\",\n  \"model\": \"llama3.2:1b\",\n  \"ollama_version\": \"0.32.13\",\n  \"models_available\": [\n    \"llama3.2:1b\",\n    \"llama3.2:3b\",\n    \"qwen2.5:3b\"\n  ],\n  \"latency_ms\": 100\n}\n"
+    },
+    "missing_model_run": {
+      "exit_code": 2,
+      "stdout": "{\n  \"ok\": false,\n  \"code\": \"model_missing\",\n  \"message\": \"Model 'nope:1b' is not pulled in Ollama 0.32.13. Run: ollama pull nope:1b. Available: llama3.2:1b, llama3.2:3b, qwen2.5:3b\",\n  \"base_url\": \"http://127.0.0.1:11434\",\n  \"model\": \"nope:1b\",\n  \"ollama_version\": \"0.32.13\",\n  \"models_available\": [\n    \"llama3.2:1b\",\n    \"llama3.2:3b\",\n    \"qwen2.5:3b\"\n  ],\n  \"latency_ms\": 131\n}\n"
+    }
+  }
+}

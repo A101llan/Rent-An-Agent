@@ -1,0 +1,5 @@
+{
+  "_help": "Checked-in defaults for the local runtime. Precedence: env var > %LOCALAPPDATA%\\AgentHub\\LocalRuntime\\config.json (or <data dir>\\config.json) > this file > hardcoded llama3.2:1b / built-in prompt. prompt_file is relative to this file's folder. Do not put per-user settings here.",
+  "model": "llama3.2:1b",
+  "prompt_file": "prompts/decisions-v2.json"
+}

@@ -42,7 +42,10 @@ experiment (explicit decisions instructions + one few-shot example + schema + te
 
 Inputs: **.docx** (paragraphs + tables, in document order, via python-docx), `.txt`, `.md`.
 
-## Cloud contract (Local Rent Architect, apps/api)
+## Cloud contract (apps/api)
+
+Full HTTP contract: [`docs/LOCAL_RUNTIME_API.md`](../../docs/LOCAL_RUNTIME_API.md).
+Sidecar helpers: `app/api_contract.py`. Run contract tests: `python -m unittest discover -s tests`.
 
 Auth header on both: `X-Session-Token: <session_token from hire>` (the API also accepts the owner JWT as Bearer; the sidecar uses the session token).
 

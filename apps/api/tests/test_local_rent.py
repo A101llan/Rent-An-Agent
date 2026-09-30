@@ -61,12 +61,10 @@ async def local_agent(db_session, seed_data):
 
 
 def _err(resp):
-    """Error envelope. AppError details are served as {"detail": {"error": {...}}} by FastAPI's
-    default HTTPException handler today; accept a top-level {"error": {...}} too."""
+    """Error envelope: canonical {"error": {...}} from apps/api global handlers."""
     body = resp.json()
-    if "error" in body:
-        return body["error"]
-    return body["detail"]["error"]
+    assert "error" in body, body
+    return body["error"]
 
 
 class _NoNetworkHttpx:
@@ -395,6 +393,9 @@ async def test_usage_rejects_invalid_body(client: AsyncClient, local_agent, db_s
     sid = data["session"]["id"]
     r = await client.post(f"/api/v1/sessions/{sid}/usage", json=payload, headers={"X-Session-Token": data["session_token"]})
     assert r.status_code == 422
+    err = _err(r)
+    assert err["code"] == "VALIDATION_ERROR"
+    assert err["message"]
     assert await _usage_count(db_session, sid) == 0
 
 

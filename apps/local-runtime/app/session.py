@@ -1,12 +1,6 @@
 """Cloud session claim + usage reporting for the local runtime.
 
-Contract (Local Rent Architect, apps/api):
-
-  POST {API}/api/v1/sessions/{id}/local/claim     header X-Session-Token
-      200 -> {session_id, expires_at, manifest}
-      401/403 bad auth, 404 unknown session, 400/409 not a local session, 410 expired
-  POST {API}/api/v1/sessions/{id}/usage           header X-Session-Token
-      body {metric_type, quantity (>0), unit, execution_id?} -> writes a UsageRecord
+Contract: docs/LOCAL_RUNTIME_API.md (helpers in api_contract.py).
 
 Rules enforced here:
   * FAIL CLOSED on any non-200 claim response (no extraction allowed).
@@ -31,21 +25,18 @@ from datetime import datetime, timezone
 from typing import Any
 
 from . import config
+from .api_contract import (
+    claim_error_code,
+    normalize_claim_success,
+    normalize_usage_success,
+    parse_api_error,
+)
 
 logger = logging.getLogger("local-runtime.session")
 
 MODE_CLAIMED = "claimed"
 MODE_OFFLINE_STUB = "offline_stub"
 ACTIVE_MODES = {MODE_CLAIMED, MODE_OFFLINE_STUB}
-
-CLAIM_ERROR_CODES = {
-    400: "not_local_session",
-    401: "unauthorized",
-    403: "forbidden",
-    404: "session_not_found",
-    409: "not_local_session",
-    410: "session_expired",
-}
 
 _bound: dict[str, Any] = {}
 _state_lock = threading.RLock()
@@ -287,18 +278,28 @@ def claim_session(session_token: str, session_id: str) -> dict[str, Any]:
     url = _api_url(config.CLAIM_PATH_TEMPLATE, sid)
     res = _http_json("POST", url, token=token, payload={})
 
-    if res["kind"] == "ok" and res["status"] == 200 and isinstance(res["body"], dict):
-        body = res["body"]
-        claimed_sid = str(body.get("session_id") or sid)
-        expires_at = _parse_expires_at(body.get("expires_at"))
+    if res["kind"] == "ok" and res["status"] == 200:
+        claim = normalize_claim_success(res["body"])
+        if not claim:
+            reason = {
+                "error": "invalid_claim_response",
+                "http_status": 200,
+                "detail": res["body"],
+                "url": url,
+            }
+            logger.warning("claim failed closed: invalid 200 body")
+            _clear(reason)
+            return {"bound": False, "fail_closed": True, "status_code": 502, **reason}
+        claimed_sid = claim["session_id"]
+        expires_at = _parse_expires_at(claim.get("expires_at"))
         logger.info("local claim OK session_id=%s expires_at=%s", claimed_sid, expires_at)
         result = _store_bound(
             token=token,
             sid=claimed_sid,
             mode=MODE_CLAIMED,
             expires_at=expires_at,
-            manifest=body.get("manifest") if isinstance(body.get("manifest"), dict) else {},
-            remote=body,
+            manifest=claim["manifest"],
+            remote=res["body"] if isinstance(res["body"], dict) else {},
         )
         if expires_at and datetime.now(timezone.utc) >= expires_at:
             _clear({"error": "session_expired", "http_status": 200, "detail": "expires_at already past"})
@@ -329,13 +330,16 @@ def claim_session(session_token: str, session_id: str) -> dict[str, Any]:
 
     # Any HTTP response other than 200 -> fail closed.
     status = res["status"]
-    code = CLAIM_ERROR_CODES.get(status, "claim_failed")
+    api_error = parse_api_error(res["body"])
+    code = claim_error_code(status, res["body"])
     reason: dict[str, Any] = {
         "error": code,
         "http_status": status,
         "detail": res["body"],
         "url": url,
     }
+    if api_error:
+        reason["api_error"] = api_error
     if status == 404:
         present = _claim_route_present()
         reason["claim_route_present_in_openapi"] = present
@@ -343,10 +347,11 @@ def claim_session(session_token: str, session_id: str) -> dict[str, Any]:
             reason["hint"] = "claim route not deployed on this API yet (Local Rent Architect)"
     logger.warning("claim failed closed: HTTP %s (%s)", status, code)
     _clear(reason)
+    known_statuses = {400, 401, 403, 404, 409, 410, 422}
     return {
         "bound": False,
         "fail_closed": True,
-        "status_code": status if status in CLAIM_ERROR_CODES else 502,
+        "status_code": status if status in known_statuses else 502,
         **reason,
     }
 
@@ -431,8 +436,9 @@ def report_usage_metric(
     res = _http_json("POST", url, token=str(token), payload=payload)
 
     if res["kind"] == "ok":
+        cloud_row = normalize_usage_success(res["body"]) or res["body"]
         logger.info("usage SENT metric_type=%s status=%s", metric_type, res["status"])
-        return {**base, "outcome": "sent", "http_status": res["status"], "cloud_row": res["body"]}
+        return {**base, "outcome": "sent", "http_status": res["status"], "cloud_row": cloud_row}
 
     if res["kind"] == "unreachable":
         row = {
@@ -452,6 +458,7 @@ def report_usage_metric(
         )
         return {**base, "outcome": "queued", "queue_path": str(config.USAGE_QUEUE_PATH), "reason": row["reason"]}
 
+    api_error = parse_api_error(res["body"])
     row = {
         "status": "failed",
         "failed_at": _now_iso(),
@@ -462,6 +469,7 @@ def report_usage_metric(
         "url": url,
         "http_status": res["status"],
         "detail": res["body"],
+        "api_error": api_error,
     }
     _append_jsonl(config.USAGE_FAILED_PATH, row)
     logger.error(

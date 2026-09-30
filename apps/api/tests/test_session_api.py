@@ -3,6 +3,8 @@
 import pytest
 from httpx import AsyncClient
 
+from tests.conftest import error_body
+
 
 @pytest.mark.asyncio
 async def test_hire_agent_returns_session_token(client: AsyncClient, seed_data):
@@ -68,7 +70,7 @@ async def test_invalid_session_token_rejected(client: AsyncClient, seed_data):
         headers={"X-Session-Token": "invalid-token-value"},
     )
     assert resp.status_code == 401
-    assert resp.json()["error"]["code"] == "INVALID_SESSION_TOKEN"
+    assert error_body(resp)["code"] == "INVALID_SESSION_TOKEN"
 
 
 @pytest.mark.asyncio

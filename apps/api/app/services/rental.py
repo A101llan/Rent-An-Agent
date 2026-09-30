@@ -32,6 +32,13 @@ from app.models import (
 from app.services.billing import billing_provider
 from app.services.marketplace import get_agent_by_slug
 
+_SESSION_LOAD_OPTIONS = (
+    selectinload(RentalSession.rental).selectinload(Rental.agent),
+    selectinload(RentalSession.rental).selectinload(Rental.agent_version),
+    selectinload(RentalSession.rental).selectinload(Rental.customer),
+    selectinload(RentalSession.runtime_instance),
+)
+
 
 def _calculate_cost(price_minor: int, pricing_model: PricingModel, duration_minutes: int) -> int:
     if pricing_model == PricingModel.PER_HOUR:
@@ -337,11 +344,7 @@ async def get_session_by_token(
     token_hash = hash_token(raw_token)
     result = await db.execute(
         select(RentalSession)
-        .options(
-            selectinload(RentalSession.rental).selectinload(Rental.agent),
-            selectinload(RentalSession.rental).selectinload(Rental.customer),
-            selectinload(RentalSession.runtime_instance),
-        )
+        .options(*_SESSION_LOAD_OPTIONS)
         .where(RentalSession.id == session_id, RentalSession.token_hash == token_hash)
     )
     session = result.scalar_one_or_none()
@@ -358,11 +361,7 @@ async def get_session_for_user(
     result = await db.execute(
         select(RentalSession)
         .join(Rental, RentalSession.rental_id == Rental.id)
-        .options(
-            selectinload(RentalSession.rental).selectinload(Rental.agent),
-            selectinload(RentalSession.rental).selectinload(Rental.customer),
-            selectinload(RentalSession.runtime_instance),
-        )
+        .options(*_SESSION_LOAD_OPTIONS)
         .where(RentalSession.id == session_id, Rental.customer_id == customer.id)
     )
     session = result.scalar_one_or_none()
@@ -385,11 +384,7 @@ async def validate_session_active(session: RentalSession) -> None:
 async def get_session_by_id(db: AsyncSession, session_id: UUID) -> RentalSession | None:
     result = await db.execute(
         select(RentalSession)
-        .options(
-            selectinload(RentalSession.rental).selectinload(Rental.agent),
-            selectinload(RentalSession.rental).selectinload(Rental.customer),
-            selectinload(RentalSession.runtime_instance),
-        )
+        .options(*_SESSION_LOAD_OPTIONS)
         .where(RentalSession.id == session_id)
     )
     return result.scalar_one_or_none()
@@ -574,6 +569,10 @@ async def _invoke_runtime(
     # Extract user message
     text = input_data if isinstance(input_data, str) else str(input_data.get("message", input_data))
 
+    approval_response = _high_risk_approval_response(text)
+    if approval_response:
+        return approval_response
+
     # Execute via LLM service (Ollama -> Gemini -> OpenAI -> Smart Fallback)
     from app.services.llm import call_llm
     agent_version = session.rental.agent_version
@@ -628,10 +627,8 @@ async def _invoke_runtime(
     return _mock_agent_response(runtime, input_data)
 
 
-def _mock_agent_response(runtime: RuntimeInstance, input_data: str | dict) -> dict:
-    text = input_data if isinstance(input_data, str) else str(input_data.get("message", input_data))
+def _high_risk_approval_response(text: str) -> dict | None:
     lower = text.lower()
-
     high_risk = {
         "send email": ("SEND_EMAIL", "Send Email", "Agent wants to send an email on your behalf."),
         "delete record": ("DELETE_RECORD", "Delete Record", "Agent wants to delete a record."),
@@ -646,6 +643,16 @@ def _mock_agent_response(runtime: RuntimeInstance, input_data: str | dict) -> di
                 "approval": {"title": title, "description": desc, "details": {"input_preview": text[:200]}},
                 "usage": {"input_tokens": 20, "output_tokens": 0},
             }
+    return None
+
+
+def _mock_agent_response(runtime: RuntimeInstance, input_data: str | dict) -> dict:
+    text = input_data if isinstance(input_data, str) else str(input_data.get("message", input_data))
+    lower = text.lower()
+
+    approval_response = _high_risk_approval_response(text)
+    if approval_response:
+        return approval_response
 
     if "invoice" in lower or "supplier" in lower or "pdf" in lower:
         return {

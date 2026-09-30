@@ -1,6 +1,8 @@
 import pytest
 from httpx import AsyncClient
 
+from tests.conftest import error_body
+
 
 @pytest.mark.asyncio
 async def test_health(client: AsyncClient):
@@ -47,4 +49,4 @@ async def test_invalid_login(client: AsyncClient):
         "password": "wrong",
     })
     assert response.status_code == 401
-    assert response.json()["error"]["code"] == "INVALID_CREDENTIALS"
+    assert error_body(response)["code"] == "INVALID_CREDENTIALS"

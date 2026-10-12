@@ -67,7 +67,7 @@ def test_request_has_caps_format_and_timeout(monkeypatch, ollama, ram, prompt_fi
     assert body["options"]["num_predict"] == config.OLLAMA_NUM_PREDICT
     assert body["options"]["num_ctx"] == config.OLLAMA_NUM_CTX
     assert body["stream"] is False
-    assert ollama["timeouts"][0] == config.OLLAMA_TIMEOUT_SECONDS
+    assert ollama["timeouts"][0] == config.model_limits(config.OLLAMA_MODEL)["timeout_s"]
     if prompt_file:  # prompt-file options (temperature) are preserved, content untouched
         assert body["options"]["temperature"] == 0
         assert r["meta"]["prompt"] == "decisions-v2"
@@ -128,7 +128,8 @@ def test_large_docx_truncated_in_output_and_prompt(tmp_path, monkeypatch, ollama
 
 @pytest.mark.parametrize("loaded,delta,ok", [(False, -1, False), (False, 0, True), (True, -1, False), (True, 0, True)])
 def test_ram_guard_thresholds(ollama, ram, loaded, delta, ok):
-    need = config.MIN_FREE_MB_WARM if loaded else config.MIN_FREE_MB_COLD
+    lim = config.model_limits(config.OLLAMA_MODEL)  # per-model values (D14/D16) win over globals
+    need = lim["min_free_mb_loaded"] if loaded else lim["min_free_mb"]
     ollama["loaded"], ram["mb"] = loaded, need + delta
     if ok:
         assert ollama_notes.check_memory()["required_mb"] == need

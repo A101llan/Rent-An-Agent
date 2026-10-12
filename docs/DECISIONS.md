@@ -174,3 +174,9 @@ Bugs found by the Ollama Integrator in real runs:
 - **Why:** during the real test pass, a silent 0.1.0 → 0.2.0 upgrade without `autostart` kept the old login shortcut, because Inno never deletes icons from tasks that are no longer selected.
 - **Alternatives:** delete it in `[Code]` (more code), or document a manual cleanup step.
 - **Follow-up from the real test pass:** `fallback_model` is now also read from `config.json` (env > `config.json` > `config.defaults.json`), the same as `models`. The first real fallback run found that only the defaults file was being read.
+
+
+### D16. Default model qwen2.5:3b with llama3.2:1b fallback (2026-10-12)
+- **Choice:** `config.defaults.json` now defaults to `qwen2.5:3b`, with `fallback_model: llama3.2:1b` and per-model `models` limits: qwen 180 s / min_free_mb 3000 / loaded 300, and 1b 120 s / 1300 / 300.
+- **Why (real tests on the 8 GB dev PC, sample-meeting.docx):** qwen2.5:3b took 89.3 s and got 2 decisions / 3 actions / 2 questions, all correct. Lowest free RAM was 1307 MB, from a 3478 MB start. llama3.2:1b took 44.5 s but got only 1/3/1.
+- **Alternatives:** keep 1b as the default (faster, but it misses decisions and questions), or use qwen with no fallback (the job fails outright when RAM is low).

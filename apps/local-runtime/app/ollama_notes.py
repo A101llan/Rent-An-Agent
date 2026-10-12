@@ -11,6 +11,7 @@ from __future__ import annotations
 import json
 import logging
 import re
+import socket
 import time
 import urllib.error
 import urllib.request
@@ -44,6 +45,7 @@ BUILTIN_PROMPT_NAME = "builtin"
 DEFAULT_USER_TEMPLATE = "Extract meeting notes from the following text:\n\n{notes}"
 
 _last_error: str | None = None
+_last_error_code: str | None = None
 
 
 def _meeting_extraction_prompt(notes: str) -> tuple[str, str]:
@@ -112,7 +114,28 @@ def prompt_info() -> dict[str, Any]:
             "prompt_file": ov["path"] if ov else None}
 
 
-def _build_request(notes: str) -> tuple[dict[str, Any], str]:
+def _safety_options(extra: dict[str, Any] | None = None) -> dict[str, Any]:
+    """Merge prompt-file options with sidecar caps; caps always win (lower num_predict kept)."""
+    opts = dict(extra or {})
+    cap = config.OLLAMA_NUM_PREDICT
+    cur = opts.get("num_predict")
+    opts["num_predict"] = min(cur, cap) if isinstance(cur, int) and cur > 0 else cap
+    opts["num_ctx"] = config.OLLAMA_NUM_CTX
+    return opts
+
+
+def _build_request(notes: str, model: str | None = None) -> tuple[dict[str, Any], str]:
+    body, name = _build_request_raw(notes)
+    if model:
+        body["model"] = model
+    if not body.get("format") or (body.get("format") == "json" and not load_prompt_override()):
+        body["format"] = config.OLLAMA_FORMAT
+    body["options"] = _safety_options(body.get("options"))
+    body["options"].setdefault("temperature", 0)  # prompt file's own temperature wins
+    return body, name
+
+
+def _build_request_raw(notes: str) -> tuple[dict[str, Any], str]:
     ov = load_prompt_override()
     if not ov:
         system, user = _meeting_extraction_prompt(notes)
@@ -221,12 +244,14 @@ def model_available(model: str | None = None) -> bool | None:
     return want in names or model in names
 
 
-def extract_meeting_notes_via_ollama(notes: str) -> dict | None:
+def extract_meeting_notes_via_ollama(notes: str, model: str | None = None) -> dict | None:
     """Call local Ollama for structured meeting extraction. None on any failure."""
-    global _last_error
-    _last_error = None
+    global _last_error, _last_error_code
+    _last_error, _last_error_code = None, None
+    model = model or config.OLLAMA_MODEL
+    timeout = config.model_limits(model)["timeout_s"]
     try:
-        body, prompt_name = _build_request(notes)
+        body, prompt_name = _build_request(notes, model)
         req = urllib.request.Request(
             f"{config.OLLAMA_BASE_URL}/api/chat",
             data=json.dumps(body).encode("utf-8"),
@@ -234,7 +259,7 @@ def extract_meeting_notes_via_ollama(notes: str) -> dict | None:
             method="POST",
         )
         t0 = time.perf_counter()
-        with urllib.request.urlopen(req, timeout=config.OLLAMA_TIMEOUT_SECONDS) as resp:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
             raw = resp.read().decode("utf-8")
         wall = time.perf_counter() - t0
         data = json.loads(raw)
@@ -257,25 +282,173 @@ def extract_meeting_notes_via_ollama(notes: str) -> dict | None:
             "eval_seconds": round((data.get("eval_duration") or 0) / ns, 2),
         }
         return {"output": parsed, "usage": usage, "source": "ollama", "meta": meta}
+    except (TimeoutError, socket.timeout):
+        _last_error_code = "timeout"
+        _last_error = (f"ollama timed out after {timeout:.0f}s (timeout_s / "
+                       "LOCAL_RUNTIME_TIMEOUT_S); the model is too slow on this PC or Ollama is stuck")
     except urllib.error.HTTPError as exc:
         try:
             detail = exc.read().decode("utf-8", errors="replace")[:300]
         except Exception:
             detail = ""
         _last_error = f"ollama HTTP {exc.code}: {detail}"
+        if exc.code == 404:
+            _last_error_code = "model_missing"
+    except urllib.error.URLError as exc:
+        if isinstance(exc.reason, (TimeoutError, socket.timeout)):
+            _last_error_code = "timeout"
+            _last_error = f"ollama timed out after {timeout:.0f}s (timeout_s / LOCAL_RUNTIME_TIMEOUT_S)"
+        else:
+            _last_error_code = "ollama_down"
+            _last_error = f"ollama unreachable at {config.OLLAMA_BASE_URL}: {exc.reason}"
+    except (ConnectionError, OSError) as exc:
+        _last_error_code = "ollama_down"
+        _last_error = f"ollama unreachable at {config.OLLAMA_BASE_URL}: {exc}"
     except Exception as exc:
         _last_error = f"ollama call failed: {exc}"
     logger.warning("extraction failed: %s", _last_error)
+    if _last_error_code == "timeout":
+        unload_model(model)
     return None
 
 
+def unload_model(model: str | None = None) -> bool:
+    """Ask Ollama to drop the model from RAM now (keep_alive: 0). Best effort, never raises."""
+    model = model or config.OLLAMA_MODEL
+    try:
+        req = urllib.request.Request(f"{config.OLLAMA_BASE_URL}/api/generate",
+                                     data=json.dumps({"model": model, "keep_alive": 0}).encode("utf-8"),
+                                     headers={"Content-Type": "application/json"}, method="POST")
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            resp.read()
+        logger.info("unloaded model %s (keep_alive=0)", model)
+        return True
+    except Exception as exc:
+        logger.warning("could not unload model %s: %s", model, exc)
+        return False
+
+
+def ollama_down_message() -> str:
+    return (f"OLLAMA NOT RUNNING: nothing answers at {config.OLLAMA_BASE_URL}. Start Ollama "
+            "(or install it from https://ollama.com/download/windows). Jobs will fail until then.")
+
+
+def model_missing_message(model: str | None = None) -> str:
+    model = model or config.OLLAMA_MODEL
+    return (f"MODEL MISSING: {model!r} is not pulled. Run 'ollama pull "
+            f"{model}' or 'agenthub-local-runtime.exe setup'.")
+
+
 class ExtractionError(RuntimeError):
-    pass
+    code = "extraction_failed"
+
+
+class OllamaDownError(ExtractionError):
+    code = "ollama_down"
+
+
+class ModelMissingError(ExtractionError):
+    code = "model_missing"
+
+
+class ExtractionTimeoutError(ExtractionError):
+    code = "timeout"
+
+
+class LowMemoryError(ExtractionError):
+    code = "low_memory"
+
+    def __init__(self, message: str, free_mb: int | None = None, required_mb: int | None = None):
+        super().__init__(message)
+        self.free_mb, self.required_mb = free_mb, required_mb
+
+
+def model_loaded(model: str | None = None) -> bool:
+    """True if Ollama already has the model resident (/api/ps)."""
+    model = model or config.OLLAMA_MODEL
+    try:
+        with urllib.request.urlopen(f"{config.OLLAMA_BASE_URL}/api/ps", timeout=3) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+        names = {m.get("name") or m.get("model") for m in data.get("models", [])}
+        want = model if ":" in model else f"{model}:latest"
+        return want in names or model in names
+    except Exception:
+        return False
+
+
+def free_ram_mb() -> int | None:
+    try:
+        import psutil
+
+        return int(psutil.virtual_memory().available // (1024 * 1024))
+    except Exception:
+        return None
+
+
+def check_memory(model: str | None = None) -> dict[str, Any]:
+    """Raise LowMemoryError if there is not enough free RAM to run `model` safely."""
+    model = model or config.OLLAMA_MODEL
+    lim = config.model_limits(model)
+    free = free_ram_mb()
+    loaded = model_loaded(model)
+    need = lim["min_free_mb_loaded"] if loaded else lim["min_free_mb"]
+    info = {"free_mb": free, "required_mb": need, "model_loaded": loaded, "model": model}
+    if free is not None and free < need:
+        raise LowMemoryError(free_mb=free, required_mb=need, message=
+            f"Not enough free memory to run the meeting-notes model safely: {free} MB of RAM free, "
+            f"{need} MB needed. Close other apps (browser tabs, Office, etc.) to free about "
+            f"{need - free} MB, then retry. "
+            "Nothing was processed and no usage was reported."
+        )
+    return info
+
+
+def choose_model() -> tuple[str, dict[str, Any], dict[str, Any] | None]:
+    """(model, memory info, fallback note|None). Falls back when RAM is short for the primary."""
+    primary = config.OLLAMA_MODEL
+    try:
+        return primary, check_memory(primary), None
+    except LowMemoryError as exc:
+        fb = config.FALLBACK_MODEL
+        if not fb or fb == primary or model_available(fb) is False:
+            raise
+        try:
+            info = check_memory(fb)
+        except LowMemoryError:
+            raise exc
+        note = {"from": primary, "to": fb, "reason": "low_memory", "free_mb": exc.free_mb,
+                "primary_required_mb": exc.required_mb,
+                "message": f"Not enough free memory for {primary} ({exc.free_mb} MB free, {exc.required_mb} MB "
+                           f"needed), so the smaller model {fb} was used instead."}
+        logger.warning("model fallback: %s", note["message"])
+        return fb, info, note
+
+
+def runtime_notices() -> list[str]:
+    """Persistent, human-readable problems (Ollama down, model missing, low RAM). Empty = ready."""
+    notices: list[str] = []
+    if not ollama_is_up():
+        notices.append(ollama_down_message())
+    elif model_available() is False:
+        notices.append(model_missing_message())
+    free = free_ram_mb()
+    need = config.model_limits(config.OLLAMA_MODEL)["min_free_mb"]
+    if free is not None and free < need and not model_loaded():
+        notices.append(f"LOW MEMORY: {free} MB free, {need} MB needed to load the model. Close other apps; "
+                       "jobs will be refused until there is room.")
+    return notices
 
 
 def meeting_notes_response(notes: str) -> dict:
-    """Ollama extraction. Canned output only if LOCAL_RUNTIME_ALLOW_CANNED=1 (labeled)."""
-    result = extract_meeting_notes_via_ollama(notes)
+    """Ollama extraction. Canned output only if LOCAL_RUNTIME_ALLOW_CANNED=1 (labeled).
+
+    Raises LowMemoryError before calling Ollama when free RAM is below the threshold.
+    """
+    model, memory, fallback = choose_model()
+    result = extract_meeting_notes_via_ollama(notes, model)
+    if result:
+        result["meta"]["memory"] = memory
+        result["meta"]["fallback"] = fallback
     if result:
         return {
             "status": "completed",
@@ -292,7 +465,14 @@ def meeting_notes_response(notes: str) -> dict:
             "source": "canned",
             "meta": {"model": None, "prompt": None, "warning": f"CANNED DEMO OUTPUT ({_last_error})"},
         }
+    if _last_error_code == "ollama_down" or (_last_error_code is None and not ollama_is_up()):
+        raise OllamaDownError(f"{ollama_down_message()} Nothing was processed and no usage was reported.")
+    if _last_error_code == "model_missing":
+        raise ModelMissingError(f"{model_missing_message(model)} Nothing was processed and no usage was reported.")
+    if _last_error_code == "timeout":
+        raise ExtractionTimeoutError(f"{_last_error}. The model was unloaded to free memory. "
+                                     "Nothing was reported as usage; try a shorter document or close other apps.")
     raise ExtractionError(
-        f"extraction failed with model {config.OLLAMA_MODEL!r}: {_last_error}. "
+        f"extraction failed with model {model!r}: {_last_error}. "
         "Check Ollama is running and the model is pulled (ollama pull <model>)."
     )

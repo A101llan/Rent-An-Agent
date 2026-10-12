@@ -2,8 +2,8 @@
   Build the Windows sidecar:  powershell -ExecutionPolicy Bypass -File installer\build.ps1
   Output:
     build\dist\agenthub-local-runtime\           PyInstaller onedir bundle
-    build\AgentHubLocalRuntime-0.1.0-win64.zip   zip + install.ps1 (fallback)
-    build\installer\AgentHubLocalRuntimeSetup-0.1.0.exe   Inno Setup installer (if ISCC found)
+    build\AgentHubLocalRuntime-0.2.0-win64.zip   zip + install.ps1 (fallback)
+    build\installer\AgentHubLocalRuntimeSetup-0.2.0.exe   Inno Setup installer (if ISCC found)
 #>
 param([switch]$SkipInno)
 $ErrorActionPreference = 'Stop'
@@ -20,14 +20,16 @@ Write-Output "version $version"
 & $py -m PyInstaller --noconfirm --clean --onedir --console `
   --name agenthub-local-runtime `
   --distpath (Join-Path $root 'build\dist') --workpath (Join-Path $root 'build\work') --specpath (Join-Path $root 'build') `
-  --paths $root --collect-submodules uvicorn --collect-data docx `
+  --paths $root --collect-submodules uvicorn --hidden-import psutil --collect-data docx `
   (Join-Path $root 'installer\entry.py')
 if ($LASTEXITCODE -ne 0) { throw "PyInstaller failed" }
 
 $dist = Join-Path $root 'build\dist\agenthub-local-runtime'
-Copy-Item installer\start-hidden.vbs, installer\config.example.json, config.defaults.json $dist -Force
+Copy-Item installer\start-hidden.vbs, installer\open-ui.vbs, installer\config.example.json, config.defaults.json $dist -Force
 New-Item -ItemType Directory -Force (Join-Path $dist 'prompts') | Out-Null
 Copy-Item prompts\* (Join-Path $dist 'prompts') -Force
+New-Item -ItemType Directory -Force (Join-Path $dist 'ui') | Out-Null
+Copy-Item ui\* (Join-Path $dist 'ui') -Force
 & (Join-Path $dist 'agenthub-local-runtime.exe') version
 
 $zipStage = Join-Path $root 'build\zipstage'

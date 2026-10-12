@@ -21,7 +21,7 @@ from pathlib import Path
 
 from . import config, session
 from .jobs import SUPPORTED_SUFFIXES, extract_to_file
-from .ollama_notes import ExtractionError
+from .ollama_notes import ExtractionError, LowMemoryError
 
 
 def _load_hire_file(path: Path) -> tuple[str | None, str | None]:
@@ -87,8 +87,14 @@ def main(argv: list[str] | None = None) -> int:
         payload = extract_to_file(
             paths, out, job_id=f"cli-{uuid.uuid4()}", report_usage=report_usage, session_info=session_info
         )
+    except LowMemoryError as exc:
+        print(f"NOT ENOUGH MEMORY: {exc}", file=sys.stderr)
+        return 5
     except ExtractionError as exc:
-        print(f"EXTRACTION FAILED (no usage reported): {exc}", file=sys.stderr)
+        if getattr(exc, "code", "") in ("ollama_down", "model_missing", "timeout"):
+            print(str(exc), file=sys.stderr)
+        else:
+            print(f"EXTRACTION FAILED (no usage reported): {exc}", file=sys.stderr)
         return 4
     print(
         json.dumps(
@@ -96,6 +102,9 @@ def main(argv: list[str] | None = None) -> int:
                 "wrote": str(out),
                 "source": payload.get("source"),
                 "model_meta": payload.get("model_meta"),
+                "input_truncated": payload.get("input_truncated"),
+                "model_used": payload.get("model_used"),
+                "model_fallback": payload.get("model_fallback"),
                 "session": payload.get("session"),
                 "usage_report": payload.get("usage_report"),
             },

@@ -14,7 +14,7 @@ import sys
 from pathlib import Path
 
 FROZEN = bool(getattr(sys, "frozen", False))
-VERSION = "0.1.0"  # matches manifest runtime.min_sidecar_version; override via LOCAL_RUNTIME_VERSION
+VERSION = "0.2.0"  # must be >= manifest runtime.min_sidecar_version (0.1.0); override via LOCAL_RUNTIME_VERSION
 
 PACKAGE_ROOT = Path(__file__).resolve().parent.parent
 # Where bundled read-only resources (prompts/) live: PyInstaller dir when frozen.
@@ -44,7 +44,7 @@ def _file_config() -> dict:
 _FILE = _file_config()
 
 # Checked-in defaults for model + prompt (shipped with the code, not user-edited).
-DEFAULTS_FILE = next(
+DEFAULTS_FILE = Path(os.environ["LOCAL_RUNTIME_DEFAULTS_FILE"]) if os.getenv("LOCAL_RUNTIME_DEFAULTS_FILE") else next(
     (d / "config.defaults.json" for d in (INSTALL_DIR, RESOURCE_ROOT) if (d / "config.defaults.json").exists()),
     INSTALL_DIR / "config.defaults.json",
 )
@@ -90,7 +90,76 @@ DEFAULT_MODEL = "llama3.2:1b"
 OLLAMA_MODEL = (
     _get("LOCAL_RUNTIME_MODEL") or _get("OLLAMA_MODEL") or str(_DEFAULTS.get("model") or "") or DEFAULT_MODEL
 )
-OLLAMA_TIMEOUT_SECONDS = float(_get("OLLAMA_TIMEOUT", "300") or "300")
+# Job-safety limits (generation options only; model/prompt content untouched). See docs/DECISIONS.md.
+# Each: env var (first listed name wins) > config.json (same key) > config.defaults.json key >
+# hardcoded fallback; validated as a positive int and clamped to sane bounds.
+
+
+def _limit(names: tuple[str, ...], defaults_key: str, fallback: int, lo: int, hi: int) -> int:
+    raw = next((v for v in (_get(n) for n in names) if v), None)
+    if raw is None:
+        raw = _DEFAULTS.get(defaults_key)
+    if raw is None or str(raw).strip() == "":
+        return fallback
+    try:
+        val = int(float(str(raw).strip()))
+        if val <= 0:
+            raise ValueError("not positive")
+    except Exception:
+        print(f"[local-runtime] invalid {defaults_key}={raw!r}; using {fallback}", file=sys.stderr)
+        return fallback
+    if not lo <= val <= hi:
+        print(f"[local-runtime] {defaults_key}={val} outside [{lo}, {hi}]; clamped", file=sys.stderr)
+    return min(max(val, lo), hi)
+
+
+OLLAMA_TIMEOUT_SECONDS = float(_limit(("LOCAL_RUNTIME_TIMEOUT_S", "OLLAMA_TIMEOUT"), "timeout_s", 180, 10, 900))
+OLLAMA_NUM_PREDICT = _limit(("LOCAL_RUNTIME_NUM_PREDICT",), "num_predict", 512, 16, 4096)
+OLLAMA_NUM_CTX = _limit(("LOCAL_RUNTIME_NUM_CTX",), "num_ctx", 4096, 512, 16384)
+MAX_INPUT_CHARS = _limit(("LOCAL_RUNTIME_MAX_INPUT_CHARS",), "max_input_chars", 8000, 500, 200000)
+# "json" (default) or a JSON-schema object; a prompt file's own "format" still wins.
+OLLAMA_FORMAT = _get("LOCAL_RUNTIME_FORMAT") or _DEFAULTS.get("format") or "json"
+if isinstance(OLLAMA_FORMAT, str) and OLLAMA_FORMAT.strip().startswith("{"):
+    try:
+        OLLAMA_FORMAT = json.loads(OLLAMA_FORMAT)
+    except Exception:
+        OLLAMA_FORMAT = "json"
+if not isinstance(OLLAMA_FORMAT, dict):
+    OLLAMA_FORMAT = "json"
+# Free RAM required before a run: when the model is not yet loaded in Ollama it needs
+# room to load (llama3.2:1b ~1.3 GB); when already resident only working headroom.
+MIN_FREE_MB_COLD = _limit(("LOCAL_RUNTIME_MIN_FREE_MB",), "min_free_mb", 1500, 100, 65536)
+MIN_FREE_MB_WARM = _limit(("LOCAL_RUNTIME_MIN_FREE_MB_LOADED",), "min_free_mb_loaded", 400, 50, 65536)
+
+# Per-model guard values + automatic fallback (D14). Optional "models" map in config.json or
+# config.defaults.json: {"qwen2.5:3b": {"timeout_s": 180, "min_free_mb": 3000, "min_free_mb_loaded": 300}}.
+# Optional "fallback_model" (LOCAL_RUNTIME_FALLBACK_MODEL): used when free RAM is below the chosen
+# model's cold threshold but meets the fallback's. No fallback when unset (code default).
+_MODELS_RAW = _FILE.get("models") if isinstance(_FILE.get("models"), dict) else _DEFAULTS.get("models")
+MODELS: dict = _MODELS_RAW if isinstance(_MODELS_RAW, dict) else {}
+FALLBACK_MODEL = (_get("LOCAL_RUNTIME_FALLBACK_MODEL") or str(_DEFAULTS.get("fallback_model") or "")).strip() or None
+_LIMIT_ENV = {"timeout_s": ("LOCAL_RUNTIME_TIMEOUT_S", "OLLAMA_TIMEOUT"), "min_free_mb": ("LOCAL_RUNTIME_MIN_FREE_MB",),
+              "min_free_mb_loaded": ("LOCAL_RUNTIME_MIN_FREE_MB_LOADED",)}
+
+
+def model_limits(model: str) -> dict:
+    """timeout_s / min_free_mb / min_free_mb_loaded for a model.
+
+    An env var set for this run wins; then the model's entry in "models"; then the global value.
+    """
+    base = {"timeout_s": OLLAMA_TIMEOUT_SECONDS, "min_free_mb": MIN_FREE_MB_COLD, "min_free_mb_loaded": MIN_FREE_MB_WARM}
+    entry = MODELS.get(model) or MODELS.get(model.split(":")[0]) or {}
+    out = dict(base)
+    for key in base:
+        if any(os.getenv(n) for n in _LIMIT_ENV[key]):
+            continue
+        v = entry.get(key) if isinstance(entry, dict) else None
+        try:
+            if v is not None and float(v) > 0:
+                out[key] = float(v) if key == "timeout_s" else int(float(v))
+        except (TypeError, ValueError):
+            pass
+    return out
 # Prompt file (.json or .txt, see README). LOCAL_RUNTIME_PROMPT_FILE (env, then config.json)
 # wins; an explicit empty value or "builtin" selects the built-in prompt. If it is not set
 # anywhere, config.defaults.json "prompt_file" is used, resolved against that file's folder

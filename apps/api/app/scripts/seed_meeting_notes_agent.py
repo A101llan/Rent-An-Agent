@@ -52,11 +52,14 @@ AGENT = {
             "id": "meeting_type",
             "question": "What type of meetings will I summarize?",
             "placeholder": "e.g. standup, product planning, client call",
+            "options": ["Standup", "Product planning", "Client call", "1:1", "All-hands", "Interview / hiring panel"],
+            "allow_other": True,
         },
         {
             "id": "output_format",
             "question": "Preferred output format?",
             "placeholder": "e.g. JSON with decisions/action_items/open_questions",
+            "options": ["Structured JSON (decisions, action items, open questions)", "Markdown", "Plain text", "PDF", "Word (.docx)", "HTML"],
         },
         {
             "id": "team_names",

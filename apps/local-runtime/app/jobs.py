@@ -95,6 +95,25 @@ def _output_path(input_paths: list[Path], requested: str | None = None) -> Path:
     return config.OUT_DIR / "meeting-notes.json"
 
 
+def truncate_input(text: str, limit: int | None = None) -> tuple[str, dict[str, Any] | None]:
+    """Cap input length (keep the start, cut at a line break). Returns (text, note|None)."""
+    limit = config.MAX_INPUT_CHARS if limit is None else limit
+    if limit <= 0 or len(text) <= limit:
+        return text, None
+    cut = text.rfind("\n", 0, limit)
+    cut = cut if cut > limit * 0.8 else limit
+    kept = text[:cut]
+    note = {
+        "truncated": True,
+        "original_chars": len(text),
+        "kept_chars": len(kept),
+        "limit_chars": limit,
+        "message": f"Document was too long; only the first {len(kept)} of {len(text)} characters were processed.",
+    }
+    logger.warning("input truncated: %s/%s chars", len(kept), len(text))
+    return kept + "\n\n[... document truncated ...]", note
+
+
 def extract_to_file(
     input_paths: list[Path],
     out_path: Path,
@@ -102,6 +121,7 @@ def extract_to_file(
     job_id: str,
     report_usage: bool = True,
     session_info: dict[str, Any] | None = None,
+    onboarding: dict[str, str] | None = None,
 ) -> dict[str, Any]:
     """Read inputs, run Ollama extraction, report usage, write JSON. Shared by server + CLI."""
     chunks: list[str] = []
@@ -113,6 +133,7 @@ def extract_to_file(
         raise RuntimeError("no input text - provide input_paths or pick_files")
 
     notes = "\n\n---\n\n".join(chunks)
+    notes, truncation = truncate_input(notes)
     result = meeting_notes_response(notes)
 
     # Canned demo output (LOCAL_RUNTIME_ALLOW_CANNED=1) is never metered.
@@ -124,6 +145,13 @@ def extract_to_file(
         "usage": result["usage"],
         "source": result.get("source"),
         "model_meta": result.get("meta"),
+        "model_used": (result.get("meta") or {}).get("model"),
+        "model_fallback": (result.get("meta") or {}).get("fallback"),
+        "input_truncated": truncation,
+        "warnings": [f"WARNING: INPUT TRUNCATED - {truncation['message']} Notes cover only the processed part."]
+        if truncation else [],
+        # Renter's onboarding answers: recorded only, NOT sent to the model (Ollama Integrator decides).
+        "onboarding": onboarding or None,
         "job_id": job_id,
         "input_paths": [str(p) for p in input_paths],
         "session": session_info if session_info is not None else session.public_summary(),
@@ -148,6 +176,7 @@ def _run_job(job_id: str) -> None:
         job["started_at"] = _now_iso()
         input_paths = [Path(p) for p in job.get("input_paths") or []]
         requested_out = job.get("output_path")
+        onboarding = job.get("onboarding")
 
     try:
         denied = session.require_active()
@@ -155,7 +184,7 @@ def _run_job(job_id: str) -> None:
             raise RuntimeError(f"{denied['error']}: {denied['detail']}")
 
         out_path = _output_path(input_paths, requested_out)
-        payload = extract_to_file(input_paths, out_path, job_id=job_id)
+        payload = extract_to_file(input_paths, out_path, job_id=job_id, onboarding=onboarding)
 
         with _lock:
             job = _jobs[job_id]
@@ -169,7 +198,12 @@ def _run_job(job_id: str) -> None:
                     "output": payload["output"],
                     "usage": payload["usage"],
                     "source": payload.get("source"),
+                    "model_used": payload.get("model_used"),
+                    "model_fallback": payload.get("model_fallback"),
                     "model_meta": payload.get("model_meta"),
+                    "input_truncated": payload.get("input_truncated"),
+                    "warnings": payload.get("warnings"),
+                    "onboarding": payload.get("onboarding"),
                     "result_path": str(out_path),
                     "session": payload["session"],
                     "usage_report": payload["usage_report"],
@@ -181,6 +215,9 @@ def _run_job(job_id: str) -> None:
             job = _jobs[job_id]
             job["status"] = "failed"
             job["error"] = str(exc)
+            job["error_code"] = getattr(exc, "code", None) or type(exc).__name__
+            if getattr(exc, "required_mb", None) is not None:
+                job["memory"] = {"free_mb": exc.free_mb, "required_mb": exc.required_mb}
             job["finished_at"] = _now_iso()
 
 
@@ -188,6 +225,7 @@ def start_meeting_notes_job(
     input_paths: list[str] | None = None,
     pick_files: bool = False,
     output_path: str | None = None,
+    onboarding: dict[str, str] | None = None,
 ) -> dict[str, Any]:
     denied = session.require_active()
     if denied:
@@ -230,12 +268,14 @@ def start_meeting_notes_job(
         "status": "queued",
         "input_paths": paths,
         "output_path": output_path,
+        "onboarding": onboarding,
         "created_at": _now_iso(),
         "started_at": None,
         "finished_at": None,
         "result_path": None,
         "result": None,
         "error": None,
+        "error_code": None,
         "cancel_requested": False,
     }
     with _lock:
@@ -258,6 +298,10 @@ def cancel_job(job_id: str) -> dict[str, Any] | None:
         if not job:
             return None
         job["cancel_requested"] = True
+        if job["status"] == "running":
+            # Abort: the HTTP call can't be interrupted, but free the model's RAM right away.
+            from .ollama_notes import unload_model
+            threading.Thread(target=unload_model, daemon=True).start()
         if job["status"] in {"queued", "running"}:
             job["status"] = "cancelled"
             job["finished_at"] = _now_iso()

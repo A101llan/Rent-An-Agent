@@ -126,3 +126,17 @@ Context: real .docx jobs could freeze the renter's PC. The reference PC is a 2-c
 - **Why:** these are small, correct, and don't change prompt content. Deterministic output suits structured JSON.
 - **Alternatives:** drop their work-in-progress (it would be lost), or keep the unconditional temperature override (it would override the prompt owner's choice).
 
+
+## 2026-10-12 · AgentHub Local Runtime 0.2.0 (branch `local-mvp-hardening`)
+
+### D13. Bump the runtime from 0.1.0 to 0.2.0
+- **Choice:** the version is `0.2.0`. It is used in `config.VERSION` (and so `/health` and the `version` command), the installer's `.iss` `AppVersion` (which sets the output name `AgentHubLocalRuntimeSetup-0.2.0.exe`, `AppVerName` and the uninstall display name), the zip name (built from `config.VERSION` in `build.ps1`), the README, the root `.env.example` comment, and the web download fallback URL. A test checks that the sidecar, `/health` and the `.iss` agree.
+- **Why a minor bump:** 0.2.0 adds user-visible features:
+  - Job safety (D1–D5, D10).
+  - The `/ui` claim-and-run page with its local-only guard (D6–D9).
+  - Settings read from `config.defaults.json` (D11, D12).
+  - New `/health` fields: `notices`. The job status endpoint also gains `error_code`.
+- **Alternatives:**
+  - 0.1.1: wrong, because this is new features, not only fixes.
+  - Stay at 0.1.0: a renter couldn't tell the old build from the new one, and the installer would overwrite it with the same version.
+- **`min_sidecar_version` is unchanged at 0.1.0** in the manifests and seeds. 0.2.0 still satisfies `>=0.1.0`, and the cloud contract doesn't need any 0.2.0-only feature. Raise it only once the cloud depends on something new, for example `/ui`.

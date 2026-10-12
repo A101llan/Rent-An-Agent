@@ -134,17 +134,17 @@ powershell -ExecutionPolicy Bypass -File installer\build.ps1
 
 - creates `.build-venv` (requirements + PyInstaller), builds a PyInstaller **onedir** bundle in
   `build\dist\agenthub-local-runtime\` (console exe + `start-hidden.vbs`, `config.example.json`, `prompts\`)
-- `build\AgentHubLocalRuntime-0.1.0-win64.zip`: the bundle + `install.ps1` (fallback)
-- `build\installer\AgentHubLocalRuntimeSetup-0.1.0.exe`: single-file Inno Setup installer, if Inno Setup 6 is
+- `build\AgentHubLocalRuntime-0.2.0-win64.zip`: the bundle + `install.ps1` (fallback)
+- `build\installer\AgentHubLocalRuntimeSetup-0.2.0.exe`: single-file Inno Setup installer, if Inno Setup 6 is
   installed (`winget install JRSoftware.InnoSetup --scope user`)
 
 Install (renter):
 
-- Run `AgentHubLocalRuntimeSetup-0.1.0.exe`. Per-user, no admin. Installs to `%LOCALAPPDATA%\Programs\AgentHub Local Runtime`.
+- Run `AgentHubLocalRuntimeSetup-0.2.0.exe`. Per-user, no admin. Installs to `%LOCALAPPDATA%\Programs\AgentHub Local Runtime`.
   Options: *Start when I sign in* (Startup-folder shortcut, hidden window) and *Check Ollama and download the AI model*
   (`agenthub-local-runtime.exe setup`: if Ollama is missing it says so and opens https://ollama.com/download/windows;
   if the configured model isn't pulled it pulls it through the Ollama API). It then starts the sidecar on 127.0.0.1:8765.
-- Silent: `AgentHubLocalRuntimeSetup-0.1.0.exe /VERYSILENT /TASKS="autostart"` (add `,setupollama` to pull the model).
+- Silent: `AgentHubLocalRuntimeSetup-0.2.0.exe /VERYSILENT /TASKS="autostart"` (add `,setupollama` to pull the model).
 - Zip route: unzip, then `powershell -ExecutionPolicy Bypass -File install.ps1 [-AutoStart] [-NoSetup]`.
 - Start menu: Start / Stop / Setup (check Ollama and model) / Uninstall. Uninstall stops the process but keeps the
   data dir (`%LOCALAPPDATA%\AgentHub\LocalRuntime`).
@@ -157,15 +157,15 @@ agenthub-local-runtime.exe            # serve (refuses to start a second copy if
 agenthub-local-runtime.exe setup      # Ollama + model check / pull
 agenthub-local-runtime.exe check      # diagnostics JSON
 agenthub-local-runtime.exe notes <file.docx> --hire-file <hire.json> -o notes.json   # one-shot CLI
-agenthub-local-runtime.exe version    # 0.1.0
+agenthub-local-runtime.exe version    # 0.2.0
 ```
 
 Logs: `%LOCALAPPDATA%\AgentHub\LocalRuntime\logs\sidecar.log`.
 
 ### Hosting the installer
 
-- The build writes the installer to `build\installer\` (`AgentHubLocalRuntimeSetup-0.1.0.exe`).
-- For local dev a copy is served from `apps/web/public/downloads/` (git-ignored) at `/downloads/AgentHubLocalRuntimeSetup-0.1.0.exe`.
+- The build writes the installer to `build\installer\` (`AgentHubLocalRuntimeSetup-0.2.0.exe`).
+- For local dev a copy is served from `apps/web/public/downloads/` (git-ignored) at `/downloads/AgentHubLocalRuntimeSetup-0.2.0.exe`.
 - In production, host it on a GitHub release or CDN and set `NEXT_PUBLIC_LOCAL_RUNTIME_DOWNLOAD_URL` in apps/web to that URL.
 
 ## Default local model & prompt

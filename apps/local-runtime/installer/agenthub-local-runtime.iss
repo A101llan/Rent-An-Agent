@@ -1,5 +1,5 @@
 ; Inno Setup script - AgentHub Local Runtime (per-user, no admin rights needed)
-#define AppVersion "0.1.0"
+#define AppVersion "0.2.0"
 #define AppExe "agenthub-local-runtime.exe"
 
 [Setup]

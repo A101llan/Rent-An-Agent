@@ -2,8 +2,8 @@
   Build the Windows sidecar:  powershell -ExecutionPolicy Bypass -File installer\build.ps1
   Output:
     build\dist\agenthub-local-runtime\           PyInstaller onedir bundle
-    build\AgentHubLocalRuntime-0.1.0-win64.zip   zip + install.ps1 (fallback)
-    build\installer\AgentHubLocalRuntimeSetup-0.1.0.exe   Inno Setup installer (if ISCC found)
+    build\AgentHubLocalRuntime-0.2.0-win64.zip   zip + install.ps1 (fallback)
+    build\installer\AgentHubLocalRuntimeSetup-0.2.0.exe   Inno Setup installer (if ISCC found)
 #>
 param([switch]$SkipInno)
 $ErrorActionPreference = 'Stop'

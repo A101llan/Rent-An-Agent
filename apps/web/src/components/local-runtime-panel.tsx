@@ -6,7 +6,7 @@ import type { AgentDetail, HireResponse } from "@/lib/api";
 
 // Installer served from apps/web/public/downloads; override with a hosted URL via env.
 export const LOCAL_RUNTIME_DOWNLOAD_URL =
-  process.env.NEXT_PUBLIC_LOCAL_RUNTIME_DOWNLOAD_URL || "/downloads/AgentHubLocalRuntimeSetup-0.1.0.exe";
+  process.env.NEXT_PUBLIC_LOCAL_RUNTIME_DOWNLOAD_URL || "/downloads/AgentHubLocalRuntimeSetup-0.2.0.exe";
 export const LOCAL_RUNTIME_VERSION = "0.1.0";
 export const LOCAL_RUNTIME_SIZE_LABEL = "19 MB";
 

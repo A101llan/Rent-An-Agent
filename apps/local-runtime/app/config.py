@@ -14,7 +14,7 @@ import sys
 from pathlib import Path
 
 FROZEN = bool(getattr(sys, "frozen", False))
-VERSION = "0.1.0"  # matches manifest runtime.min_sidecar_version; override via LOCAL_RUNTIME_VERSION
+VERSION = "0.2.0"  # must be >= manifest runtime.min_sidecar_version (0.1.0); override via LOCAL_RUNTIME_VERSION
 
 PACKAGE_ROOT = Path(__file__).resolve().parent.parent
 # Where bundled read-only resources (prompts/) live: PyInstaller dir when frozen.

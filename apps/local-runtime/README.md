@@ -42,7 +42,10 @@ prompt (explicit decisions instructions + one few-shot example + schema + temper
 
 Inputs: **.docx** (paragraphs + tables, in document order, via python-docx), `.txt`, `.md`.
 
-## Cloud contract (Local Rent Architect, apps/api)
+## Cloud contract (apps/api)
+
+Full HTTP contract: [`docs/local-runtime-contract.md`](../../docs/local-runtime-contract.md).
+Sidecar parsers: `app/api_contract.py` (reads `detail.error`, and also a top-level `error` object).
 
 Auth header on both: `X-Session-Token: <session_token from hire>` (the API also accepts the owner JWT as Bearer; the sidecar uses the session token).
 

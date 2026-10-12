@@ -4,11 +4,26 @@ The local sidecar uses the API to claim a rented local agent and report metering
 
 ## Authentication
 
-Send `X-Session-Token: <session_token>` (the token returned by hire) or an owner `Authorization: Bearer <JWT>` header. Token authentication is preferred for a sidecar. All errors use the existing API error envelope and clients key on `detail.error.code` (not only HTTP status):
+Send `X-Session-Token: <session_token>` (the token returned by hire) or an owner `Authorization: Bearer <JWT>` header. Token authentication is preferred for a sidecar. That token is the MVP device credential; a narrower claim code is planned and is not required for these endpoints. All errors use the existing API error envelope and clients key on `detail.error.code` (not only HTTP status). The sidecar parser in `apps/local-runtime/app/api_contract.py` also accepts a top-level `error` object:
 
 ```json
 {"detail":{"error":{"code":"INVALID_SESSION_TOKEN","message":"Invalid session token","request_id":"..."}}}
 ```
+
+## Hire
+
+`POST /rentals/hire` for a local agent includes `runtime_provider: "local"` and, only for local sessions, a `local` object:
+
+```json
+{
+  "session_id": "...",
+  "claim_endpoint": "https://host/api/v1/sessions/{id}/local/claim",
+  "usage_endpoint": "https://host/api/v1/sessions/{id}/usage",
+  "auth_header": "X-Session-Token"
+}
+```
+
+The web client types this as `LocalRuntimeInfo` on `HireResponse.local`. The sidecar binds with `session.id` and `session_token`.
 
 ## Endpoints
 

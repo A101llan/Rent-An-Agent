@@ -14,7 +14,8 @@ Rules enforced here:
   * FAIL CLOSED on any non-200 claim response (no extraction allowed).
   * Offline stub bind ONLY when the API is unreachable (refused/timeout) AND
     LOCAL_RUNTIME_OFFLINE_STUB=1 (config.OFFLINE_STUB). Clearly labeled mode.
-  * Errors use the envelope {detail:{error:{code,message,request_id}}}; handling keys on code.
+  * Errors use {detail:{error:{code,message,request_id}}} (a top-level error object
+    is also accepted); handling keys on code.
   * Usage: network error or 5xx -> local pending queue (usage-pending.jsonl) for sync;
     any 4xx (incl. 422 VALIDATION_ERROR) is terminal -> usage-failed.jsonl, dropped.
   * Never calls runtime-manager.
@@ -33,23 +34,13 @@ from datetime import datetime, timezone
 from typing import Any
 
 from . import config
+from .api_contract import CLAIM_STATUS_FALLBACK, claim_error_code, parse_api_error
 
 logger = logging.getLogger("local-runtime.session")
 
 MODE_CLAIMED = "claimed"
 MODE_OFFLINE_STUB = "offline_stub"
 ACTIVE_MODES = {MODE_CLAIMED, MODE_OFFLINE_STUB}
-
-# Contract codes (docs/local-runtime-contract.md) -> sidecar error names.
-CLAIM_ERROR_CODES = {
-    "INVALID_SESSION_TOKEN": "unauthorized",
-    "SESSION_NOT_FOUND": "session_not_found",
-    "SESSION_NOT_LOCAL": "not_local_session",
-    "SESSION_EXPIRED": "session_expired",
-    "VALIDATION_ERROR": "validation_error",
-}
-CLAIM_STATUS_FALLBACK = {401: "unauthorized", 403: "forbidden", 404: "session_not_found",
-                         409: "not_local_session", 410: "session_expired", 422: "validation_error"}
 
 _bound: dict[str, Any] = {}
 _state_lock = threading.RLock()
@@ -88,19 +79,20 @@ def _api_url(template: str, session_id: str) -> str:
 
 
 def _error_code(body: Any) -> str | None:
-    """Contract envelope: {detail: {error: {code, message, request_id}}}."""
-    try:
-        err = body["detail"]["error"]
-        return str(err.get("code")) if err.get("code") else None
-    except (KeyError, TypeError, AttributeError):
+    """Contract envelope: detail.error, or a top-level error object."""
+    err = parse_api_error(body)
+    if not err:
         return None
+    code = err.get("code")
+    return str(code) if code else None
 
 
 def _error_message(body: Any) -> str | None:
-    try:
-        return body["detail"]["error"].get("message")
-    except (KeyError, TypeError, AttributeError):
+    err = parse_api_error(body)
+    if not err:
         return None
+    message = err.get("message")
+    return str(message) if message else None
 
 
 def _retryable(res: dict[str, Any]) -> bool:
@@ -346,7 +338,7 @@ def claim_session(session_token: str, session_id: str) -> dict[str, Any]:
     # Any HTTP response other than 200 (incl. 5xx) -> fail closed.
     status = res["status"]
     api_code = _error_code(res["body"])
-    code = CLAIM_ERROR_CODES.get(api_code or "") or CLAIM_STATUS_FALLBACK.get(status, "claim_failed")
+    code = claim_error_code(status, res["body"])
     reason: dict[str, Any] = {
         "error": code,
         "api_code": api_code,

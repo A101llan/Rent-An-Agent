@@ -119,6 +119,13 @@ export interface Session {
   embed?: EmbedSnippet;
 }
 
+export interface LocalRuntimeInfo {
+  session_id: string;
+  claim_endpoint: string;
+  usage_endpoint: string;
+  auth_header?: string;
+}
+
 export interface HireResponse {
   rental: Rental;
   session: Session;
@@ -126,6 +133,7 @@ export interface HireResponse {
   runtime_provider?: string | null;
   integration: SessionIntegrationInfo;
   embed: EmbedSnippet;
+  local?: LocalRuntimeInfo | null;
 }
 
 export interface EmbedSnippet {

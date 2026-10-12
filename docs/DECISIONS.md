@@ -180,3 +180,14 @@ Bugs found by the Ollama Integrator in real runs:
 - **Choice:** `config.defaults.json` now defaults to `qwen2.5:3b`, with `fallback_model: llama3.2:1b` and per-model `models` limits: qwen 180 s / min_free_mb 3000 / loaded 300, and 1b 120 s / 1300 / 300.
 - **Why (real tests on the 8 GB dev PC, sample-meeting.docx):** qwen2.5:3b took 89.3 s and got 2 decisions / 3 actions / 2 questions, all correct. Lowest free RAM was 1307 MB, from a 3478 MB start. llama3.2:1b took 44.5 s but got only 1/3/1.
 - **Alternatives:** keep 1b as the default (faster, but it misses decisions and questions), or use qwen with no fallback (the job fails outright when RAM is low).
+### D17. Unload the model after every run (`keep_alive_s`, default 0)
+- **Choice:**
+  - Every `/api/chat` request now sends `keep_alive` = `keep_alive_s`. It is resolved env `LOCAL_RUNTIME_KEEP_ALIVE_S` > `config.json` (`LOCAL_RUNTIME_KEEP_ALIVE_S` or `keep_alive_s`) > `config.defaults.json` `keep_alive_s` > hardcoded **0**.
+  - Values below -1 become -1 (Ollama's "keep loaded forever"), and an invalid value falls back to 0.
+  - The `keep_alive:0` unload after a timeout or abort (D14) is unchanged.
+- **Why:** after a successful run, Ollama kept qwen2.5:3b resident for its default of about 5 minutes (roughly 2 GB). On the target PCs that pushed the next job's free-RAM check onto the fallback model, or refused it. Unloading right away gives each job the full RAM budget.
+- **Cost:** every job pays a cold load (seconds on the reference PC). The Ollama Integrator can raise `keep_alive_s` in `config.defaults.json` if back-to-back speed matters more.
+- **Alternatives:**
+  - Ollama's global `OLLAMA_KEEP_ALIVE` (a shared setting, which the Integrator owns, and it would affect other apps).
+  - A separate unload call after each run (an extra request; the per-request field does the same thing).
+  - Keep Ollama's default (the problem above).

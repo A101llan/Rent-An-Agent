@@ -131,6 +131,26 @@ if not isinstance(OLLAMA_FORMAT, dict):
 MIN_FREE_MB_COLD = _limit(("LOCAL_RUNTIME_MIN_FREE_MB",), "min_free_mb", 1500, 100, 65536)
 MIN_FREE_MB_WARM = _limit(("LOCAL_RUNTIME_MIN_FREE_MB_LOADED",), "min_free_mb_loaded", 400, 50, 65536)
 
+# keep_alive sent with every /api/chat request (D17): seconds Ollama keeps the model loaded after a
+# run. 0 = unload right away (frees ~2 GB for the next job); -1 = keep forever (Ollama semantics).
+# env LOCAL_RUNTIME_KEEP_ALIVE_S > config.json (LOCAL_RUNTIME_KEEP_ALIVE_S or keep_alive_s) >
+# config.defaults.json keep_alive_s > 0.
+
+
+def _keep_alive() -> int:
+    for raw in (_get("LOCAL_RUNTIME_KEEP_ALIVE_S"), _FILE.get("keep_alive_s"), _DEFAULTS.get("keep_alive_s")):
+        if raw is None or str(raw).strip() == "":
+            continue
+        try:
+            return max(-1, int(float(str(raw).strip())))
+        except ValueError:
+            print(f"[local-runtime] invalid keep_alive_s={raw!r}; using 0", file=sys.stderr)
+            return 0
+    return 0
+
+
+KEEP_ALIVE_S = _keep_alive()
+
 # Per-model guard values + automatic fallback (D14). Optional "models" map in config.json or
 # config.defaults.json: {"qwen2.5:3b": {"timeout_s": 180, "min_free_mb": 3000, "min_free_mb_loaded": 300}}.
 # Optional "fallback_model" (LOCAL_RUNTIME_FALLBACK_MODEL): used when free RAM is below the chosen

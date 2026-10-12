@@ -132,6 +132,7 @@ def _build_request(notes: str, model: str | None = None) -> tuple[dict[str, Any]
         body["format"] = config.OLLAMA_FORMAT
     body["options"] = _safety_options(body.get("options"))
     body["options"].setdefault("temperature", 0)  # prompt file's own temperature wins
+    body["keep_alive"] = config.KEEP_ALIVE_S  # D17: unload after the run by default
     return body, name
 
 

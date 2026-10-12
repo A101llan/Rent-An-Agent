@@ -17,6 +17,12 @@ import {
   isLocalSession,
   type LocalClaim,
 } from "@/components/local-runtime-panel";
+import GradientText from "@/components/reactbits/GradientText";
+import SpotlightCard from "@/components/reactbits/SpotlightCard";
+import ClickSpark from "@/components/reactbits/ClickSpark";
+
+// Brand gradient used for hire-flow headings (indigo → violet → sky).
+const HEADING_GRADIENT = ["#818cf8", "#c084fc", "#38bdf8", "#818cf8"];
 
 const DURATIONS = [
   { minutes: 15, label: "15 minutes" },
@@ -134,7 +140,11 @@ export default function HirePageContent() {
           <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-green-900/30">
             <Check className="h-8 w-8 text-green-400" />
           </div>
-          <h1 className="text-2xl font-bold">Rental ready</h1>
+          <h1 className="text-2xl font-bold">
+            <GradientText colors={HEADING_GRADIENT} animationSpeed={10}>
+              Rental ready
+            </GradientText>
+          </h1>
           <p className="mt-2 text-zinc-400">
             {agent.name} runs on your device with AgentHub Local. Download it, then paste your session ID and session token.
           </p>
@@ -163,7 +173,11 @@ export default function HirePageContent() {
           <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-green-900/30">
             <Check className="h-8 w-8 text-green-400" />
           </div>
-          <h1 className="text-2xl font-bold">Agent ready</h1>
+          <h1 className="text-2xl font-bold">
+            <GradientText colors={HEADING_GRADIENT} animationSpeed={10}>
+              Agent ready
+            </GradientText>
+          </h1>
           <p className="mt-2 text-zinc-400">
             Add the widget to your own system, or try it here in the AgentHub workspace.
           </p>
@@ -196,7 +210,11 @@ export default function HirePageContent() {
   if (step === "provisioning") {
     return (
       <div className="mx-auto max-w-lg px-6 py-24">
-        <h1 className="text-2xl font-bold text-center">Preparing your agent...</h1>
+        <h1 className="text-2xl font-bold text-center">
+          <GradientText colors={HEADING_GRADIENT} animationSpeed={6}>
+            Preparing your agent...
+          </GradientText>
+        </h1>
         <div className="mt-8 space-y-3">
           {(localAgent
             ? LOCAL_PROVISIONING_STEPS
@@ -222,7 +240,11 @@ export default function HirePageContent() {
         ← Back to {agent.name}
       </Link>
 
-      <h1 className="mt-6 text-2xl font-bold">Hire {agent.name}</h1>
+      <h1 className="mt-6 text-2xl font-bold">
+        <GradientText colors={HEADING_GRADIENT} animationSpeed={10}>
+          Hire {agent.name}
+        </GradientText>
+      </h1>
       {localAgent && <LocalRuntimeBadge className="mt-3" />}
 
       {error && (
@@ -250,7 +272,12 @@ export default function HirePageContent() {
         </div>
       </section>
 
-      <section className="mt-8 rounded-xl border border-zinc-800 p-6">
+      <SpotlightCard
+        className="mt-8 !rounded-xl !p-6"
+        spotlightColor="rgba(129, 140, 248, 0.9)"
+        intensity={0.12}
+        borderGlow={0.5}
+      >
         <div className="flex justify-between">
           <span className="text-zinc-400">Price</span>
           <span className="text-xl font-bold">{formatPrice(costMinor)}</span>
@@ -266,14 +293,16 @@ export default function HirePageContent() {
             ))}
           </ul>
         </div>
-      </section>
+      </SpotlightCard>
 
-      <button
-        onClick={handleAuthorize}
-        className="mt-8 w-full rounded-lg bg-indigo-600 py-3 font-medium hover:bg-indigo-500"
-      >
-        AUTHORIZE & START
-      </button>
+      <ClickSpark className="mt-8 !h-auto" sparkColor={["#a5b4fc", "#c084fc", "#38bdf8"]} sparkCount={10}>
+        <button
+          onClick={handleAuthorize}
+          className="w-full rounded-lg bg-gradient-to-r from-indigo-600 via-violet-600 to-indigo-600 py-3 font-medium shadow-lg shadow-indigo-900/30 transition-colors hover:from-indigo-500 hover:via-violet-500 hover:to-indigo-500"
+        >
+          AUTHORIZE & START
+        </button>
+      </ClickSpark>
     </div>
   );
 }

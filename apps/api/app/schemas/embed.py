@@ -1,3 +1,5 @@
+from typing import Any
+
 from pydantic import BaseModel, Field
 
 
@@ -7,7 +9,8 @@ class EmbedBootstrapResponse(BaseModel):
     session_id: str
     expires_at: str
     onboarding_complete: bool
-    questions: list[dict[str, str]] = []
+    # id/question/placeholder strings, plus optional options (list[str]) and allow_other (bool).
+    questions: list[dict[str, Any]] = []
     welcome_message: str | None = None
 
 

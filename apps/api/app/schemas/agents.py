@@ -9,6 +9,11 @@ class OnboardingQuestion(BaseModel):
     id: str
     question: str
     placeholder: str | None = None
+    # Optional closed set of answers; when present the UI renders a dropdown.
+    # Questions without options stay free-text (backward compatible).
+    options: list[str] | None = None
+    # Adds an "Other" choice with a free-text input next to the options.
+    allow_other: bool = False
 
 class OnboardingConfig(BaseModel):
     questions: list[OnboardingQuestion] = []

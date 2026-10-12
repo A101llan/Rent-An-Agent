@@ -69,7 +69,7 @@ DEMO_AGENTS = [
         "pricing_model": PricingModel.PER_HOUR,
         "system_prompt": "You are a Research Agent. Your job is to conduct market research and competitive analysis. You provide structured, data-driven reports.",
         "onboarding_questions": [
-            {"id": "industry", "question": "What industry or market should I focus on?", "placeholder": "e.g. SaaS, fintech, healthcare"},
+            {"id": "industry", "question": "What industry or market should I focus on?", "placeholder": "e.g. SaaS, fintech, healthcare", "options": ["SaaS / software", "Fintech", "Healthcare", "E-commerce / retail", "Logistics", "Education", "Manufacturing"], "allow_other": True},
             {"id": "competitors", "question": "List your key competitors or companies to benchmark.", "placeholder": "e.g. Stripe, Braintree, Adyen"},
             {"id": "goal", "question": "What decision is this research supporting?", "placeholder": "e.g. entering a new market, pricing strategy"},
         ],
@@ -102,9 +102,9 @@ DEMO_AGENTS = [
         "system_prompt": "You are an Invoice Analyzer Agent. Your job is to extract structured data from invoices, detect anomalies, and flag potential fraud or errors for the finance team.",
         "onboarding_questions": [
             {"id": "company_name", "question": "What company or team will this agent support?", "placeholder": "e.g. Acme Finance AP team"},
-            {"id": "erp_system", "question": "Which system do you process invoices in?", "placeholder": "e.g. QuickBooks, SAP, Excel"},
-            {"id": "invoice_volume", "question": "Roughly how many invoices do you handle per week?", "placeholder": "e.g. 50–200"},
-            {"id": "primary_goal", "question": "What should I focus on first?", "placeholder": "e.g. anomaly detection, data extraction, vendor matching"},
+            {"id": "erp_system", "question": "Which system do you process invoices in?", "placeholder": "e.g. QuickBooks, SAP, Excel", "options": ["QuickBooks", "Xero", "SAP", "Sage", "Excel / Google Sheets"], "allow_other": True},
+            {"id": "invoice_volume", "question": "Roughly how many invoices do you handle per week?", "placeholder": "e.g. 50–200", "options": ["Fewer than 50", "50–200", "200–1,000", "More than 1,000"]},
+            {"id": "primary_goal", "question": "What should I focus on first?", "placeholder": "e.g. anomaly detection, data extraction, vendor matching", "options": ["Anomaly detection", "Data extraction", "Vendor matching", "Approval routing"], "allow_other": True},
         ],
     },
     {
@@ -119,7 +119,7 @@ DEMO_AGENTS = [
         "system_prompt": "You are a Customer Support Agent. Your job is to generate polite, professional, and helpful responses to customer inquiries.",
         "onboarding_questions": [
             {"id": "product_name", "question": "What product or service am I supporting?", "placeholder": "e.g. Acme SaaS platform"},
-            {"id": "tone", "question": "What tone should I use in responses?", "placeholder": "e.g. formal and professional, friendly and casual"},
+            {"id": "tone", "question": "What tone should I use in responses?", "placeholder": "e.g. formal and professional, friendly and casual", "options": ["Formal and professional", "Friendly and casual", "Neutral and concise", "Warm and empathetic"], "allow_other": True},
             {"id": "escalation_policy", "question": "When should I escalate to a human agent?", "placeholder": "e.g. billing disputes, legal complaints, angry VIPs"},
         ],
     },
@@ -134,8 +134,8 @@ DEMO_AGENTS = [
         "pricing_model": PricingModel.PER_REQUEST,
         "system_prompt": "You are a Meeting Notes Agent. Your job is to take messy meeting notes or transcript snippets and return a structured summary with decisions, action items (owner + task), and open questions. Pure text in, structured JSON out.",
         "onboarding_questions": [
-            {"id": "meeting_type", "question": "What type of meetings will I summarize?", "placeholder": "e.g. standup, product planning, client call"},
-            {"id": "output_format", "question": "Preferred output format?", "placeholder": "e.g. JSON with decisions/action_items/open_questions"},
+            {"id": "meeting_type", "question": "What type of meetings will I summarize?", "placeholder": "e.g. standup, product planning, client call", "options": ["Standup", "Product planning", "Client call", "1:1", "All-hands", "Interview / hiring panel"], "allow_other": True},
+            {"id": "output_format", "question": "Preferred output format?", "placeholder": "e.g. JSON with decisions/action_items/open_questions", "options": ["Structured JSON (decisions, action items, open questions)", "Markdown", "Plain text", "PDF", "Word (.docx)", "HTML"]},
             {"id": "team_names", "question": "Any recurring attendees or role names to recognize?", "placeholder": "e.g. Alex (PM), Jordan (Eng)"},
         ],
     },
@@ -153,8 +153,8 @@ DEMO_AGENTS = [
         "runtime": load_meeting_notes_local_runtime(),
         "system_prompt": "You are a Meeting Notes Agent. Your job is to take messy meeting notes or transcript snippets and return a structured summary with decisions, action items (owner + task), and open questions. Pure text in, structured JSON out.",
         "onboarding_questions": [
-            {"id": "meeting_type", "question": "What type of meetings will I summarize?", "placeholder": "e.g. standup, product planning, client call"},
-            {"id": "output_format", "question": "Preferred output format?", "placeholder": "e.g. JSON with decisions/action_items/open_questions"},
+            {"id": "meeting_type", "question": "What type of meetings will I summarize?", "placeholder": "e.g. standup, product planning, client call", "options": ["Standup", "Product planning", "Client call", "1:1", "All-hands", "Interview / hiring panel"], "allow_other": True},
+            {"id": "output_format", "question": "Preferred output format?", "placeholder": "e.g. JSON with decisions/action_items/open_questions", "options": ["Structured JSON (decisions, action items, open questions)", "Markdown", "Plain text", "PDF", "Word (.docx)", "HTML"]},
             {"id": "team_names", "question": "Any recurring attendees or role names to recognize?", "placeholder": "e.g. Alex (PM), Jordan (Eng)"},
         ],
     },
@@ -170,8 +170,8 @@ DEMO_AGENTS = [
         "system_prompt": "You are an Asset Management Agent. Your job is to help operations teams manage structured business asset data, track maintenance schedules, and analyze depreciation.",
         "onboarding_questions": [
             {"id": "asset_types", "question": "What types of assets are you tracking?", "placeholder": "e.g. laptops, vehicles, machinery"},
-            {"id": "tracking_system", "question": "Do you have an existing asset tracking system?", "placeholder": "e.g. Snipe-IT, spreadsheet, ServiceNow"},
-            {"id": "priority_task", "question": "What's the most urgent task you need help with?", "placeholder": "e.g. overdue maintenance alerts, depreciation reports"},
+            {"id": "tracking_system", "question": "Do you have an existing asset tracking system?", "placeholder": "e.g. Snipe-IT, spreadsheet, ServiceNow", "options": ["None yet", "Spreadsheet", "Snipe-IT", "ServiceNow"], "allow_other": True},
+            {"id": "priority_task", "question": "What's the most urgent task you need help with?", "placeholder": "e.g. overdue maintenance alerts, depreciation reports", "options": ["Overdue maintenance alerts", "Depreciation reports", "Inventory audit", "Check-in / check-out tracking"], "allow_other": True},
         ],
     },
 ]

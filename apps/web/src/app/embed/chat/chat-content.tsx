@@ -8,7 +8,13 @@ interface Question {
   id: string;
   question: string;
   placeholder?: string;
+  /** Closed-set answers. When present the question renders as a dropdown. */
+  options?: string[];
+  /** Adds an "Other" choice with a free-text input (only used with options). */
+  allow_other?: boolean;
 }
+
+const OTHER_VALUE = "__other__";
 
 interface Bootstrap {
   agent_name: string;
@@ -29,6 +35,8 @@ export default function EmbedChatPage() {
 
   const [bootstrap, setBootstrap] = useState<Bootstrap | null>(null);
   const [answers, setAnswers] = useState<Record<string, string>>({});
+  // Question ids where the renter picked "Other" and is typing a custom answer.
+  const [otherSelected, setOtherSelected] = useState<Record<string, boolean>>({});
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -133,12 +141,46 @@ export default function EmbedChatPage() {
             {bootstrap.questions.map((q) => (
               <label key={q.id} className="block">
                 <span className="text-xs font-medium text-zinc-400">{q.question}</span>
-                <input
-                  value={answers[q.id] || ""}
-                  onChange={(e) => setAnswers((a) => ({ ...a, [q.id]: e.target.value }))}
-                  placeholder={q.placeholder}
-                  className="mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm outline-none focus:border-indigo-500"
-                />
+                {q.options && q.options.length > 0 ? (
+                  <>
+                    <select
+                      value={otherSelected[q.id] ? OTHER_VALUE : answers[q.id] || ""}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        const isOther = value === OTHER_VALUE;
+                        setOtherSelected((o) => ({ ...o, [q.id]: isOther }));
+                        setAnswers((a) => ({ ...a, [q.id]: isOther ? "" : value }));
+                      }}
+                      className="mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm outline-none focus:border-indigo-500"
+                    >
+                      <option value="" disabled>
+                        Select an option…
+                      </option>
+                      {q.options.map((opt) => (
+                        <option key={opt} value={opt}>
+                          {opt}
+                        </option>
+                      ))}
+                      {q.allow_other && <option value={OTHER_VALUE}>Other…</option>}
+                    </select>
+                    {q.allow_other && otherSelected[q.id] && (
+                      <input
+                        value={answers[q.id] || ""}
+                        onChange={(e) => setAnswers((a) => ({ ...a, [q.id]: e.target.value }))}
+                        placeholder={q.placeholder || "Please specify"}
+                        aria-label={`${q.question} (other)`}
+                        className="mt-2 w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm outline-none focus:border-indigo-500"
+                      />
+                    )}
+                  </>
+                ) : (
+                  <input
+                    value={answers[q.id] || ""}
+                    onChange={(e) => setAnswers((a) => ({ ...a, [q.id]: e.target.value }))}
+                    placeholder={q.placeholder}
+                    className="mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm outline-none focus:border-indigo-500"
+                  />
+                )}
               </label>
             ))}
           </div>

@@ -434,8 +434,16 @@ def runtime_notices() -> list[str]:
     free = free_ram_mb()
     need = config.model_limits(config.OLLAMA_MODEL)["min_free_mb"]
     if free is not None and free < need and not model_loaded():
-        notices.append(f"LOW MEMORY: {free} MB free, {need} MB needed to load the model. Close other apps; "
-                       "jobs will be refused until there is room.")
+        fb = config.FALLBACK_MODEL
+        fb_need = config.model_limits(fb)["min_free_mb"] if fb and fb != config.OLLAMA_MODEL else None
+        if fb_need is not None and (free >= fb_need or model_loaded(fb)):
+            notices.append(f"LOW MEMORY: {free} MB free, {need} MB needed for {config.OLLAMA_MODEL}. Jobs will use the "
+                           f"smaller fallback model {fb} until there is more room (close other apps to use "
+                           f"{config.OLLAMA_MODEL}).")
+        else:
+            short = f"{need} MB needed to load the model" + (f" ({fb_need} MB for the fallback {fb})" if fb_need else "")
+            notices.append(f"LOW MEMORY: {free} MB free, {short}. Close other apps; "
+                           "jobs will be refused until there is room.")
     return notices
 
 

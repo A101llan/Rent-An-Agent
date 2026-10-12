@@ -191,3 +191,25 @@ def test_fallback_and_models_read_from_config_files(tmp_path, monkeypatch):
     finally:
         monkeypatch.undo()
         importlib.reload(cfg)
+
+
+@pytest.mark.parametrize("ram,fallback,expect", [
+    (2000, "small:1b", "will use the smaller fallback model small:1b"),
+    (1000, "small:1b", "jobs will be refused"),
+    (2000, None, "jobs will be refused"),
+    (3500, "small:1b", None),
+])
+def test_low_memory_notice_considers_fallback(fake, monkeypatch, ram, fallback, expect):
+    _set_models(monkeypatch)
+    monkeypatch.setattr(config, "FALLBACK_MODEL", fallback)
+    monkeypatch.setattr(ollama_notes, "model_available", lambda m=None: True)
+    fake["ram"] = ram
+    low = [n for n in ollama_notes.runtime_notices() if n.startswith("LOW MEMORY")]
+    if expect is None:
+        assert low == []
+    else:
+        assert len(low) == 1 and expect in low[0]
+        if "refused" in expect:
+            assert "fallback model" not in low[0]
+        else:
+            assert "refused" not in low[0]

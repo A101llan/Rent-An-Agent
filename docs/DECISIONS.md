@@ -168,3 +168,8 @@ Bugs found by the Ollama Integrator in real runs:
   - A global `OLLAMA_KEEP_ALIVE` (a shared Ollama setting, owned by the Integrator).
   - Always use the 1B model (worse decisions, per the Integrator's numbers).
 
+
+### D15. Installer removes a stale login shortcut on upgrade
+- **Choice:** an `[InstallDelete]` entry removes `{userstartup}\AgentHub Local Runtime.lnk` when the `autostart` task is not selected.
+- **Why:** during the real test pass, a silent 0.1.0 → 0.2.0 upgrade without `autostart` kept the old login shortcut, because Inno never deletes icons from tasks that are no longer selected.
+- **Alternatives:** delete it in `[Code]` (more code), or document a manual cleanup step.

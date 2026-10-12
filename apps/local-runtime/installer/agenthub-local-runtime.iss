@@ -27,6 +27,10 @@ Name: "autostart"; Description: "Start the AgentHub local runtime when I sign in
 Name: "desktopicon"; Description: "Create an 'AgentHub Local' desktop shortcut"; GroupDescription: "Shortcuts:"
 Name: "setupollama"; Description: "Check Ollama and download the AI model now (opens a console window)"; GroupDescription: "AI model:"
 
+[InstallDelete]
+; An upgrade with 'start at sign-in' unticked must not keep an older login shortcut (D15).
+Type: files; Name: "{userstartup}\AgentHub Local Runtime.lnk"; Tasks: not autostart
+
 [Files]
 Source: "..\build\dist\agenthub-local-runtime\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 

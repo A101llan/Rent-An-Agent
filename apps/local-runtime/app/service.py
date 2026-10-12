@@ -4,6 +4,7 @@
   agenthub-local-runtime.exe setup [--no-pull] [--open-browser]
                                               check Ollama; pull the configured model if absent
   agenthub-local-runtime.exe check            print diagnostics JSON
+  agenthub-local-runtime.exe open             start the sidecar if needed and open http://127.0.0.1:8765/ui
   agenthub-local-runtime.exe notes <files> [cli options]   one-shot extraction (app.cli)
   agenthub-local-runtime.exe version
 """
@@ -85,6 +86,10 @@ def serve() -> int:
 
     from .main import app
 
+    from .ollama_notes import runtime_notices
+
+    for notice in runtime_notices():
+        log.warning("[!] %s", notice)
     log.info(
         "starting AgentHub local runtime %s on %s:%s (home=%s model=%s frozen=%s)",
         config.VERSION, host, port, config.HOME, config.OLLAMA_MODEL, config.FROZEN,
@@ -182,7 +187,7 @@ def _setup(argv: list[str]) -> int:
 
 
 def check() -> int:
-    from .ollama_notes import model_available, ollama_is_up, prompt_info
+    from .ollama_notes import model_available, ollama_is_up, prompt_info, runtime_notices
 
     up = ollama_is_up()
     running = _existing_sidecar("127.0.0.1", config.PORT)
@@ -195,9 +200,34 @@ def check() -> int:
         "ollama": "up" if up else "down",
         **prompt_info(),
         "model_available": model_available() if up else None,
+        "notices": runtime_notices(),
         "sidecar_running_on_port": bool(running),
         "port": config.PORT,
     }, indent=2))
+    return 0
+
+
+UI_URL_TEMPLATE = "http://127.0.0.1:{port}/ui"
+
+
+def open_ui(wait_seconds: float = 30.0) -> int:
+    """Start the sidecar (hidden) if it isn't running, then open /ui in the default browser."""
+    import subprocess
+    import time
+
+    url = UI_URL_TEMPLATE.format(port=config.PORT)
+    if not _existing_sidecar("127.0.0.1", config.PORT):
+        if _port_in_use("127.0.0.1", config.PORT):
+            print(f"Port {config.PORT} is used by another program; cannot start AgentHub Local.")
+            _wait_for_key()
+            return 3
+        args = [sys.executable, "serve"] if config.FROZEN else [sys.executable, "-m", "app.service", "serve"]
+        flags = getattr(subprocess, "CREATE_NO_WINDOW", 0) | getattr(subprocess, "DETACHED_PROCESS", 0)
+        subprocess.Popen(args, cwd=str(config.INSTALL_DIR), creationflags=flags, close_fds=True)
+        deadline = time.monotonic() + wait_seconds
+        while time.monotonic() < deadline and not _existing_sidecar("127.0.0.1", config.PORT):
+            time.sleep(0.5)
+    webbrowser.open(url)
     return 0
 
 
@@ -211,6 +241,8 @@ def main(argv: list[str] | None = None) -> int:
         return setup(rest)
     if cmd == "check":
         return check()
+    if cmd == "open":
+        return open_ui()
     if cmd == "version":
         print(config.VERSION)
         return 0

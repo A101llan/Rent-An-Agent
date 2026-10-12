@@ -1,15 +1,15 @@
-# AgentHub decisions log
+﻿# AgentHub decisions log
 
 Format: decision, why, alternatives considered. Newest first.
 
-## 2026-10-12 · local-runtime job safety (branch `local-mvp-hardening`)
+## 2026-10-12 Â· local-runtime job safety (branch `local-mvp-hardening`)
 
 Context: real .docx jobs could freeze the renter's PC. The reference PC is a 2-core i7-7600U with 7.9 GB RAM, about 1 GB free, and no GPU, running llama3.2:1b on the CPU. Model and prompt content are owned by the Ollama Integrator. Only request options and guards were changed.
 
 ### D1. Cap generation through Ollama request options
 - **Choice:** every `/api/chat` request sends `options.num_predict = 512` (`LOCAL_RUNTIME_NUM_PREDICT`) and `options.num_ctx = 4096` (`LOCAL_RUNTIME_NUM_CTX`), and keeps `format` set (`"json"`, or the prompt file's JSON schema). Options from the prompt file (e.g. `temperature: 0`) are merged in. The sidecar caps win, and a lower `num_predict` from the prompt file is kept.
 - **Why:**
-  - A complete notes JSON is about 150–250 tokens, so 512 leaves headroom while stopping runaway generation, which caused the CPU and RAM pinning.
+  - A complete notes JSON is about 150â€“250 tokens, so 512 leaves headroom while stopping runaway generation, which caused the CPU and RAM pinning.
   - An explicit `num_ctx` stops Ollama from silently dropping the start of the prompt (the system prompt) when the input is long. It also bounds the KV-cache memory: for a 1B model, 4096 tokens is roughly 130 MB.
 - **Alternatives:**
   - Rely on Ollama's defaults (unbounded, and they vary by Ollama version).
@@ -18,17 +18,17 @@ Context: real .docx jobs could freeze the renter's PC. The reference PC is a 2-c
 
 ### D2. Request timeout 180 s (was 300 s)
 - **Choice:** `OLLAMA_TIMEOUT` defaults to 180 s and stays configurable. A timeout fails the job with a clear message and reports no usage.
-- **Why:** observed runs took 18–60 s, including cold loads. 180 s is 3× the worst observed run, and the shorter timeout limits how long a stuck run holds the machine.
+- **Why:** observed runs took 18â€“60 s, including cold loads. 180 s is 3Ã— the worst observed run, and the shorter timeout limits how long a stuck run holds the machine.
 - **Alternatives:**
   - 300 s (too long for a renter waiting on a frozen PC).
-  - 60–90 s (would fail cold starts on 2-core CPUs).
+  - 60â€“90 s (would fail cold starts on 2-core CPUs).
 
 ### D3. Input cap of 8,000 characters, truncated with a visible note
 - **Choice:** joined document text over `LOCAL_RUNTIME_MAX_INPUT_CHARS` (8000) is cut at the last line break before the limit, and a `[... document truncated ...]` marker is added. The output JSON gets an `input_truncated` block `{truncated, original_chars, kept_chars, limit_chars, message}`. Under the limit, it's `null`.
 - **Why:**
   - 8,000 characters is about 2,000 tokens.
   - With the decisions-v2 prompt and its example (~600 tokens) plus 512 output tokens, that fits inside the 4,096-token context with margin.
-  - Prompt evaluation time and RAM stay bounded on a 2-core CPU, roughly 30–60 s.
+  - Prompt evaluation time and RAM stay bounded on a 2-core CPU, roughly 30â€“60 s.
 - **Alternatives:**
   - Map-reduce chunking: summarise each chunk, then merge. Better coverage of long documents, but it costs N+1 model calls, which means minutes and repeated RAM pressure on the target PCs. Deferred: revisit with the Integrator if long meetings matter.
   - Reject long documents outright (a worse user experience).
@@ -36,10 +36,10 @@ Context: real .docx jobs could freeze the renter's PC. The reference PC is a 2-c
 
 ### D4. Free-RAM guard via psutil before calling Ollama
 - **Choice:** before each run, `psutil.virtual_memory().available` is checked.
-  - Need ≥ 1,500 MB free if the model is not yet resident (checked via Ollama `/api/ps`). llama3.2:1b loads at about 1.3 GB.
-  - Need ≥ 400 MB free if it's already loaded.
+  - Need â‰¥ 1,500 MB free if the model is not yet resident (checked via Ollama `/api/ps`). llama3.2:1b loads at about 1.3 GB.
+  - Need â‰¥ 400 MB free if it's already loaded.
   - Both are configurable: `LOCAL_RUNTIME_MIN_FREE_MB` and `LOCAL_RUNTIME_MIN_FREE_MB_LOADED`.
-  - Below the threshold, a `LowMemoryError` is raised (job `error_code: "low_memory"`, CLI exit 5) with a "Close other apps … and try again. Nothing was processed and no usage was reported" message. Ollama is not called, no output file is written, and no usage is reported.
+  - Below the threshold, a `LowMemoryError` is raised (job `error_code: "low_memory"`, CLI exit 5) with a "Close other apps â€¦ and try again. Nothing was processed and no usage was reported" message. Ollama is not called, no output file is written, and no usage is reported.
   - If psutil can't be imported, the guard is skipped (fail-open) so a packaging slip can't brick the sidecar.
 - **Why:**
   - Loading the model with too little free RAM makes Windows page heavily, which is the "freeze".
@@ -56,3 +56,73 @@ Context: real .docx jobs could freeze the renter's PC. The reference PC is a 2-c
 - **Alternatives:**
   - A tkinter or MessageBox dialog. It would need GUI code in the setup path; the /ui page (step 2) will cover the GUI.
   - `timeout /t 30` in a .cmd wrapper (still closes by itself).
+
+## 2026-10-12 Ã‚Â· local-runtime /ui page and the settled job-safety defaults (branch `local-mvp-hardening`)
+
+### D6. Claim-and-run UI is a static page served by the sidecar at `127.0.0.1:8765/ui`
+- **Choice:** one static `ui/index.html` (plain HTML and JS, no framework, no CDN) plus JSON endpoints under `/ui/api` (`state`, `claim`, `upload`, `run`, `jobs/{id}`, `jobs/{id}/json`). These reuse `session.claim_session` and `jobs.start_meeting_notes_job`.
+  - The .docx is uploaded as a raw request body, so `python-multipart` isn't needed.
+  - It is saved under `<data dir>\uploads\<id>\`, and the output goes to `<data dir>\out\meeting-notes-<id>.json`.
+  - The file sits in `ui\` next to the exe; `build.ps1` copies it.
+- **Why:**
+  - No new heavy dependencies, and no GUI toolkit inside the PyInstaller bundle.
+  - Fully testable headless with TestClient.
+  - Works in any browser.
+  - Same code path and contract handling as the API and CLI.
+- **Alternatives:**
+  - tkinter window: an extra GUI thread in the sidecar, harder to test, and the dated look puts renters off.
+  - pywebview or Electron: heavy, more to bundle and sign.
+  - A separate GUI exe: two binaries to keep in sync.
+
+### D7. Local-only protection for the sidecar HTTP surface
+- **Choice:** `LocalOnlyGuard` middleware.
+  - **Host check:** `/ui*` requires `Host` to be `127.0.0.1:<port>` or `localhost:<port>`, which blocks DNS rebinding.
+  - **Origin check:** every non-GET request (including the existing `/session/*` and `/jobs/*` routes) is rejected if `Origin` is present and not the sidecar's own origin.
+  - **Custom header:** `/ui/api` POSTs also need `X-AgentHub-UI: 1`, which forces a CORS preflight that the app never approves.
+  - **Page headers:** the page sends `X-Frame-Options: DENY` and a CSP with `frame-ancestors 'none'`.
+  - **Binding:** the sidecar still binds only to 127.0.0.1.
+- **Why:** any website the renter visits could otherwise POST to `localhost:8765` (CSRF) to claim with someone else's token or run jobs.
+- **Alternatives:**
+  - A random per-launch secret in the URL (stronger, but it breaks bookmarks and the Start-menu shortcut; possible later).
+  - CORS settings alone (they don't stop "simple" cross-site POSTs).
+
+### D8. Session token handling in the UI
+- **Choice:** the token is typed into a password field and POSTed once to `/ui/api/claim`. The field is cleared right after the POST. It is never written to `localStorage` or `sessionStorage` or into the page, and `/ui/api/*` responses never include it. The sidecar keeps it in `<data dir>\.session.json`, the same as the existing claim path.
+- **Why:** the token is the renter's credential, and the brief requires it to stay out of the browser.
+- **Alternatives:** keeping it in browser storage to survive reloads (rejected; the sidecar already persists the binding).
+
+### D9. Onboarding answers are recorded, not prompted (MVP)
+- **Choice:** the 3 questions come from the claimed manifest (`manifest.onboarding.questions`). The answers go into the job as an `onboarding` dict and are saved in the output JSON. They are NOT added to the Ollama prompt.
+- **Why:** prompt content is owned by the Ollama Integrator; Project Manager confirmed this for the MVP.
+- **Alternatives:** inject the answers into the system or user prompt (deferred to the Integrator).
+
+### D10. Long input: keep truncation, make it loud
+- **Choice:** keep the cap from D3. When it triggers, the output JSON gets a top-level `warnings` entry ("WARNING: INPUT TRUNCATED - Ã¢â‚¬Â¦") in addition to `input_truncated`, and `/ui` shows a high-contrast banner above the notes ("Document truncated Ã¢â‚¬Â¦ split the document to process the rest").
+- **Why:** chunking (map-reduce) means several model calls, which takes minutes and repeats the RAM pressure on the target 2-core, roughly 1 GB-free PCs. Silent truncation would mislead renters.
+- **Alternatives:** chunk and merge (rejected for the MVP on cost), refuse long documents.
+
+### D11. Job-safety defaults settled (decided by Project Manager; values owned by the Ollama Integrator)
+- **Choice:** the values live in `apps/local-runtime/config.defaults.json`, which the Ollama Integrator owns:
+  - `num_ctx` 2048
+  - `num_predict` 384
+  - `timeout_s` 120
+  - input cap 6,000 characters
+  - free RAM Ã¢â€°Â¥ 1,300 MB before a cold run (model not loaded)
+  - free RAM Ã¢â€°Â¥ 300 MB when the model is already loaded
+- **Code change:** `config.py` reads these keys through the Ollama Integrator's `_limit()` helper. It was their uncommitted work-in-progress, finished and committed here with credit. Order: env var (e.g. `LOCAL_RUNTIME_MIN_FREE_MB`, `LOCAL_RUNTIME_TIMEOUT_S` / `OLLAMA_TIMEOUT`) > `config.json` (same key) > `config.defaults.json` key (`num_predict`, `num_ctx`, `timeout_s`, `max_input_chars`, `min_free_mb`, `min_free_mb_loaded`, `format`) > hardcoded fallback. Values are validated as positive ints and clamped to sane bounds. The hardcoded fallbacks (D1Ã¢â‚¬â€œD4: 4096 / 512 / 180 s / 8,000 / 1,500 / 400) only apply if the file is missing a key. Tests read the active config rather than fixed numbers.
+- **Low-RAM message:** says "X MB of RAM free, Y MB needed, close other apps Ã¢â‚¬Â¦ then retry". It appears in the job error and on `/ui`.
+- **Why 1,300 over 1,500 (cold):**
+  - llama3.2:1b loads at about 1.3 GB. The target PC usually has about 1 GB free, so 1,500 MB refused almost every cold run.
+  - With the smaller context and output caps (2048 / 384), the KV cache and working set are smaller, so 1,300 MB gives enough headroom.
+  - Rejected alternative: 1,500 MB (the earlier sidecar default; safer against paging but too strict for the target hardware).
+- **Value in `config.defaults.json` at the time of this commit:** `min_free_mb` = 1300 MB (cold) and `min_free_mb_loaded` = 300 MB (loaded), as resolved by `config.py`.
+
+### D12. Temperature default and Ollama-status notices (Ollama Integrator's work-in-progress, kept)
+- **Choice:**
+  - `temperature: 0` is sent by default, but a prompt file's own `options.temperature` wins. This was softened from their unconditional override.
+  - Clearer timeout and "unreachable" messages are kept.
+  - `runtime_notices()` (Ollama not running, model missing, low memory) is shown on `/health`, in `check`, and logged at `serve`.
+  - Their full uncommitted diff was saved to `%TEMP%\integrator-uncommitted-20261012-181633.patch` before merging.
+- **Why:** these are small, correct, and don't change prompt content. Deterministic output suits structured JSON.
+- **Alternatives:** drop their work-in-progress (it would be lost), or keep the unconditional temperature override (it would override the prompt owner's choice).
+

@@ -24,12 +24,15 @@ WizardStyle=modern
 
 [Tasks]
 Name: "autostart"; Description: "Start the AgentHub local runtime when I sign in"; GroupDescription: "Startup:"
+Name: "desktopicon"; Description: "Create an 'AgentHub Local' desktop shortcut"; GroupDescription: "Shortcuts:"
 Name: "setupollama"; Description: "Check Ollama and download the AI model now (opens a console window)"; GroupDescription: "AI model:"
 
 [Files]
 Source: "..\build\dist\agenthub-local-runtime\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
+Name: "{group}\Open AgentHub Local"; Filename: "{sys}\wscript.exe"; Parameters: """{app}\open-ui.vbs"""; WorkingDir: "{app}"
+Name: "{userdesktop}\AgentHub Local"; Filename: "{sys}\wscript.exe"; Parameters: """{app}\open-ui.vbs"""; WorkingDir: "{app}"; Tasks: desktopicon
 Name: "{group}\Start AgentHub Local Runtime"; Filename: "{sys}\wscript.exe"; Parameters: """{app}\start-hidden.vbs"""; WorkingDir: "{app}"
 Name: "{group}\Stop AgentHub Local Runtime"; Filename: "{sys}\taskkill.exe"; Parameters: "/IM {#AppExe} /F"
 Name: "{group}\Setup - check Ollama and model"; Filename: "{app}\{#AppExe}"; Parameters: "setup --open-browser --pause"; WorkingDir: "{app}"
@@ -38,7 +41,8 @@ Name: "{userstartup}\AgentHub Local Runtime"; Filename: "{sys}\wscript.exe"; Par
 
 [Run]
 Filename: "{app}\{#AppExe}"; Parameters: "setup --open-browser"; WorkingDir: "{app}"; StatusMsg: "Checking Ollama and the AI model..."; Flags: waituntilterminated; Tasks: setupollama
-Filename: "{sys}\wscript.exe"; Parameters: """{app}\start-hidden.vbs"""; WorkingDir: "{app}"; Description: "Start AgentHub Local Runtime now (127.0.0.1:8765)"; Flags: postinstall nowait
+Filename: "{sys}\wscript.exe"; Parameters: """{app}\start-hidden.vbs"""; WorkingDir: "{app}"; Description: "Start AgentHub Local Runtime now (127.0.0.1:8765)"; Flags: postinstall nowait unchecked
+Filename: "{sys}\wscript.exe"; Parameters: """{app}\open-ui.vbs"""; WorkingDir: "{app}"; Description: "Open AgentHub Local (http://127.0.0.1:8765/ui)"; Flags: postinstall nowait
 
 [UninstallRun]
 Filename: "{sys}\taskkill.exe"; Parameters: "/IM {#AppExe} /F"; Flags: runhidden; RunOnceId: "StopSidecar"

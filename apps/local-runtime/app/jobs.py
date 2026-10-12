@@ -121,6 +121,7 @@ def extract_to_file(
     job_id: str,
     report_usage: bool = True,
     session_info: dict[str, Any] | None = None,
+    onboarding: dict[str, str] | None = None,
 ) -> dict[str, Any]:
     """Read inputs, run Ollama extraction, report usage, write JSON. Shared by server + CLI."""
     chunks: list[str] = []
@@ -145,6 +146,10 @@ def extract_to_file(
         "source": result.get("source"),
         "model_meta": result.get("meta"),
         "input_truncated": truncation,
+        "warnings": [f"WARNING: INPUT TRUNCATED - {truncation['message']} Notes cover only the processed part."]
+        if truncation else [],
+        # Renter's onboarding answers: recorded only, NOT sent to the model (Ollama Integrator decides).
+        "onboarding": onboarding or None,
         "job_id": job_id,
         "input_paths": [str(p) for p in input_paths],
         "session": session_info if session_info is not None else session.public_summary(),
@@ -169,6 +174,7 @@ def _run_job(job_id: str) -> None:
         job["started_at"] = _now_iso()
         input_paths = [Path(p) for p in job.get("input_paths") or []]
         requested_out = job.get("output_path")
+        onboarding = job.get("onboarding")
 
     try:
         denied = session.require_active()
@@ -176,7 +182,7 @@ def _run_job(job_id: str) -> None:
             raise RuntimeError(f"{denied['error']}: {denied['detail']}")
 
         out_path = _output_path(input_paths, requested_out)
-        payload = extract_to_file(input_paths, out_path, job_id=job_id)
+        payload = extract_to_file(input_paths, out_path, job_id=job_id, onboarding=onboarding)
 
         with _lock:
             job = _jobs[job_id]
@@ -191,6 +197,9 @@ def _run_job(job_id: str) -> None:
                     "usage": payload["usage"],
                     "source": payload.get("source"),
                     "model_meta": payload.get("model_meta"),
+                    "input_truncated": payload.get("input_truncated"),
+                    "warnings": payload.get("warnings"),
+                    "onboarding": payload.get("onboarding"),
                     "result_path": str(out_path),
                     "session": payload["session"],
                     "usage_report": payload["usage_report"],
@@ -203,6 +212,8 @@ def _run_job(job_id: str) -> None:
             job["status"] = "failed"
             job["error"] = str(exc)
             job["error_code"] = getattr(exc, "code", None) or type(exc).__name__
+            if getattr(exc, "required_mb", None) is not None:
+                job["memory"] = {"free_mb": exc.free_mb, "required_mb": exc.required_mb}
             job["finished_at"] = _now_iso()
 
 
@@ -210,6 +221,7 @@ def start_meeting_notes_job(
     input_paths: list[str] | None = None,
     pick_files: bool = False,
     output_path: str | None = None,
+    onboarding: dict[str, str] | None = None,
 ) -> dict[str, Any]:
     denied = session.require_active()
     if denied:
@@ -252,6 +264,7 @@ def start_meeting_notes_job(
         "status": "queued",
         "input_paths": paths,
         "output_path": output_path,
+        "onboarding": onboarding,
         "created_at": _now_iso(),
         "started_at": None,
         "finished_at": None,

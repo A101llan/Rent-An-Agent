@@ -11,6 +11,7 @@ from __future__ import annotations
 import json
 import logging
 import re
+import socket
 import time
 import urllib.error
 import urllib.request
@@ -124,9 +125,10 @@ def _safety_options(extra: dict[str, Any] | None = None) -> dict[str, Any]:
 
 def _build_request(notes: str) -> tuple[dict[str, Any], str]:
     body, name = _build_request_raw(notes)
-    if not body.get("format"):
-        body["format"] = "json"
+    if not body.get("format") or (body.get("format") == "json" and not load_prompt_override()):
+        body["format"] = config.OLLAMA_FORMAT
     body["options"] = _safety_options(body.get("options"))
+    body["options"].setdefault("temperature", 0)  # prompt file's own temperature wins
     return body, name
 
 
@@ -275,12 +277,20 @@ def extract_meeting_notes_via_ollama(notes: str) -> dict | None:
             "eval_seconds": round((data.get("eval_duration") or 0) / ns, 2),
         }
         return {"output": parsed, "usage": usage, "source": "ollama", "meta": meta}
+    except (TimeoutError, socket.timeout):
+        _last_error = (f"ollama timed out after {config.OLLAMA_TIMEOUT_SECONDS:.0f}s (timeout_s / "
+                       "LOCAL_RUNTIME_TIMEOUT_S); the model is too slow on this PC or Ollama is stuck")
     except urllib.error.HTTPError as exc:
         try:
             detail = exc.read().decode("utf-8", errors="replace")[:300]
         except Exception:
             detail = ""
         _last_error = f"ollama HTTP {exc.code}: {detail}"
+    except urllib.error.URLError as exc:
+        if isinstance(exc.reason, (TimeoutError, socket.timeout)):
+            _last_error = f"ollama timed out after {config.OLLAMA_TIMEOUT_SECONDS:.0f}s (timeout_s / LOCAL_RUNTIME_TIMEOUT_S)"
+        else:
+            _last_error = f"ollama unreachable at {config.OLLAMA_BASE_URL}: {exc.reason}"
     except Exception as exc:
         _last_error = f"ollama call failed: {exc}"
     logger.warning("extraction failed: %s", _last_error)
@@ -293,6 +303,10 @@ class ExtractionError(RuntimeError):
 
 class LowMemoryError(ExtractionError):
     code = "low_memory"
+
+    def __init__(self, message: str, free_mb: int | None = None, required_mb: int | None = None):
+        super().__init__(message)
+        self.free_mb, self.required_mb = free_mb, required_mb
 
 
 def model_loaded(model: str | None = None) -> bool:
@@ -324,12 +338,30 @@ def check_memory() -> dict[str, Any]:
     need = config.MIN_FREE_MB_WARM if loaded else config.MIN_FREE_MB_COLD
     info = {"free_mb": free, "required_mb": need, "model_loaded": loaded}
     if free is not None and free < need:
-        raise LowMemoryError(
-            f"Not enough free memory to run the meeting-notes model safely: {free} MB free, "
-            f"{need} MB needed. Close other apps (browser tabs, Office, etc.) and try again. "
+        raise LowMemoryError(free_mb=free, required_mb=need, message=
+            f"Not enough free memory to run the meeting-notes model safely: {free} MB of RAM free, "
+            f"{need} MB needed. Close other apps (browser tabs, Office, etc.) to free about "
+            f"{need - free} MB, then retry. "
             "Nothing was processed and no usage was reported."
         )
     return info
+
+
+def runtime_notices() -> list[str]:
+    """Persistent, human-readable problems (Ollama down, model missing, low RAM). Empty = ready."""
+    notices: list[str] = []
+    if not ollama_is_up():
+        notices.append(f"OLLAMA NOT RUNNING: nothing answers at {config.OLLAMA_BASE_URL}. Start Ollama "
+                       "(or install it from https://ollama.com/download/windows). Jobs will fail until then.")
+    elif model_available() is False:
+        notices.append(f"MODEL MISSING: {config.OLLAMA_MODEL!r} is not pulled. Run 'ollama pull "
+                       f"{config.OLLAMA_MODEL}' or 'agenthub-local-runtime.exe setup'.")
+    free = free_ram_mb()
+    need = config.MIN_FREE_MB_COLD
+    if free is not None and free < need and not model_loaded():
+        notices.append(f"LOW MEMORY: {free} MB free, {need} MB needed to load the model. Close other apps; "
+                       "jobs will be refused until there is room.")
+    return notices
 
 
 def meeting_notes_response(notes: str) -> dict:

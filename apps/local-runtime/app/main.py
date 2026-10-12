@@ -10,11 +10,16 @@ from pydantic import BaseModel
 
 from . import config, session
 from .jobs import cancel_job, get_job, start_meeting_notes_job
-from .ollama_notes import model_available, ollama_is_up, prompt_info
+from .ollama_notes import model_available, ollama_is_up, prompt_info, runtime_notices
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 
 app = FastAPI(title="AgentHub Local Runtime", version=config.VERSION)
+
+from .ui import LocalOnlyGuard, router as ui_router  # noqa: E402
+
+app.add_middleware(LocalOnlyGuard)
+app.include_router(ui_router)
 
 
 class BindBody(BaseModel):
@@ -55,6 +60,7 @@ def health() -> dict[str, Any]:
         "model": info["model"],
         "model_available": model_available() if up else None,
         "prompt": info["prompt"],
+        "notices": runtime_notices(),
         "frozen": config.FROZEN,
         "home": str(config.HOME),
         "api_base": config.AGENTHUB_API_BASE,

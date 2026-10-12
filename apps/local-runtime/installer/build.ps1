@@ -25,9 +25,11 @@ Write-Output "version $version"
 if ($LASTEXITCODE -ne 0) { throw "PyInstaller failed" }
 
 $dist = Join-Path $root 'build\dist\agenthub-local-runtime'
-Copy-Item installer\start-hidden.vbs, installer\config.example.json, config.defaults.json $dist -Force
+Copy-Item installer\start-hidden.vbs, installer\open-ui.vbs, installer\config.example.json, config.defaults.json $dist -Force
 New-Item -ItemType Directory -Force (Join-Path $dist 'prompts') | Out-Null
 Copy-Item prompts\* (Join-Path $dist 'prompts') -Force
+New-Item -ItemType Directory -Force (Join-Path $dist 'ui') | Out-Null
+Copy-Item ui\* (Join-Path $dist 'ui') -Force
 & (Join-Path $dist 'agenthub-local-runtime.exe') version
 
 $zipStage = Join-Path $root 'build\zipstage'

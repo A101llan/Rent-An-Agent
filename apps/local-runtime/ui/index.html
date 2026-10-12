@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>AgentHub Local</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+body{font-family:Segoe UI,system-ui,sans-serif;max-width:760px;margin:24px auto;padding:0 16px;color:#1d2330}
+h1{font-size:22px}section{border:1px solid #d8dce5;border-radius:10px;padding:16px;margin:14px 0}
+section.off{opacity:.45;pointer-events:none}label{display:block;margin:10px 0 4px;font-weight:600}
+input[type=text],input[type=password],textarea{width:100%;box-sizing:border-box;padding:8px;border:1px solid #bbc;border-radius:6px}
+button{margin-top:12px;padding:8px 16px;border:0;border-radius:6px;background:#2453d6;color:#fff;cursor:pointer}
+button:disabled{background:#99a}.err{background:#fdecec;color:#8a1111;padding:10px;border-radius:6px;margin-top:10px}
+.ok{color:#11702c}.trunc{background:#ffe1b3;border:2px solid #d97a00;color:#5a3200;font-weight:700;padding:12px;border-radius:8px;margin-bottom:12px}.warn{background:#fff6dc;padding:8px;border-radius:6px}ul{padding-left:20px}small{color:#667}
+</style></head><body>
+<h1>AgentHub Local &middot; Meeting Notes</h1>
+<p><small>Runs on this PC. Your document never leaves it; only usage counts are sent to AgentHub.</small></p>
+<div id="ollama" class="warn" hidden>The local AI engine (Ollama) isn't running. Start "Ollama" from the Start menu (or install it from ollama.com/download/windows).</div>
+
+<section id="s1"><h2>1. Connect your hire</h2>
+<label for="sid">Session ID</label><input id="sid" type="text" autocomplete="off">
+<label for="tok">Session token</label><input id="tok" type="password" autocomplete="off">
+<button id="claim">Connect</button><div id="claimMsg"></div></section>
+
+<section id="s2" class="off"><h2>2. A few questions</h2><div id="qs"></div></section>
+
+<section id="s3" class="off"><h2>3. Pick a Word document</h2>
+<input id="file" type="file" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+<button id="run">Create meeting notes</button><div id="runMsg"></div></section>
+
+<section id="s4" class="off"><h2>4. Result</h2><div id="result"></div></section>
+
+<script>
+"use strict";
+const H = {"X-AgentHub-UI": "1"};
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+function err(el, m){ $(el).innerHTML = '<div class="err">' + esc(m) + '</div>'; }
+async function api(path, opts){ const r = await fetch(path, opts); let j = {}; try { j = await r.json(); } catch(e) {} return j; }
+function showQuestions(qs){
+  $("qs").innerHTML = qs.length ? qs.map(q => '<label for="q_'+esc(q.id)+'">'+esc(q.question)+'</label><textarea rows="2" id="q_'+esc(q.id)+'" data-qid="'+esc(q.id)+'" placeholder="'+esc(q.placeholder)+'"></textarea>').join("") : "<small>No questions for this agent.</small>";
+  ["s2","s3"].forEach(s => $(s).classList.remove("off"));
+}
+async function refresh(){
+  const st = await api("/ui/api/state");
+  $("ollama").hidden = st.ollama !== "down";
+  if (st.session && st.session.bound){ $("sid").value = st.session.session_id || "";
+    $("claimMsg").innerHTML = '<p class="ok">Connected'+(st.session.expires_at?' &middot; expires '+esc(new Date(st.session.expires_at).toLocaleString()):'')+'</p>';
+    showQuestions(st.session.questions || []); }
+}
+$("claim").onclick = async () => {
+  $("claim").disabled = true; $("claimMsg").textContent = "Connecting...";
+  const j = await api("/ui/api/claim", {method:"POST", headers:{...H,"Content-Type":"application/json"},
+    body: JSON.stringify({session_id: $("sid").value.trim(), session_token: $("tok").value.trim()})});
+  $("tok").value = ""; $("claim").disabled = false;
+  if (!j.ok) return err("claimMsg", j.message || "Could not connect.");
+  await refresh();
+};
+$("run").onclick = async () => {
+  const f = $("file").files[0];
+  if (!f) return err("runMsg", "Choose a .docx file first.");
+  $("run").disabled = true; $("runMsg").textContent = "Uploading...";
+  const up = await api("/ui/api/upload?filename=" + encodeURIComponent(f.name), {method:"POST", headers:{...H,"Content-Type":"application/octet-stream"}, body: f});
+  if (!up.ok){ $("run").disabled = false; return err("runMsg", up.message); }
+  const onboarding = {}; document.querySelectorAll("[data-qid]").forEach(t => onboarding[t.dataset.qid] = t.value);
+  const st = await api("/ui/api/run", {method:"POST", headers:{...H,"Content-Type":"application/json"}, body: JSON.stringify({upload_id: up.upload_id, onboarding})});
+  if (!st.ok){ $("run").disabled = false; return err("runMsg", st.message); }
+  $("runMsg").textContent = "Working... this can take a minute or two on this PC.";
+  for (;;){ await new Promise(r => setTimeout(r, 2000));
+    const j = await api("/ui/api/jobs/" + st.job_id);
+    if (j.status === "queued" || j.status === "running") continue;
+    $("run").disabled = false;
+    if (!j.ok) return err("runMsg", j.message);
+    $("runMsg").textContent = ""; render(j); return; }
+};
+function list(items, fmt){ return items && items.length ? "<ul>" + items.map(i => "<li>" + fmt(i) + "</li>").join("") + "</ul>" : "<p><small>None found.</small></p>"; }
+function render(j){
+  const o = j.output || {};
+  $("result").innerHTML = (j.truncation_message ? '<div class="trunc">&#9888; Document truncated: ' + esc(j.truncation_message) + ' The notes below cover only that part. Split the document to process the rest.</div>' : "") +
+    "<h3>Summary</h3><p>" + esc(o.summary) + "</p>" +
+    "<h3>Decisions</h3>" + list(o.decisions, esc) +
+    "<h3>Action items</h3>" + list(o.action_items, a => "<b>" + esc(a.owner) + "</b>: " + esc(a.task)) +
+    "<h3>Open questions</h3>" + list(o.open_questions, esc) +
+    '<p><a href="' + esc(j.json_url) + '" target="_blank">Open saved JSON</a><br><small>' + esc(j.result_path) + '</small></p>';
+  $("s4").classList.remove("off");
+}
+refresh();
+</script></body></html>

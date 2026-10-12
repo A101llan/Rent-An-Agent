@@ -90,7 +90,15 @@ DEFAULT_MODEL = "llama3.2:1b"
 OLLAMA_MODEL = (
     _get("LOCAL_RUNTIME_MODEL") or _get("OLLAMA_MODEL") or str(_DEFAULTS.get("model") or "") or DEFAULT_MODEL
 )
-OLLAMA_TIMEOUT_SECONDS = float(_get("OLLAMA_TIMEOUT", "300") or "300")
+# Job-safety limits (generation options only; model/prompt content untouched). See docs/DECISIONS.md.
+OLLAMA_TIMEOUT_SECONDS = float(_get("OLLAMA_TIMEOUT", "180") or "180")
+OLLAMA_NUM_PREDICT = int(_get("LOCAL_RUNTIME_NUM_PREDICT", "512") or "512")
+OLLAMA_NUM_CTX = int(_get("LOCAL_RUNTIME_NUM_CTX", "4096") or "4096")
+MAX_INPUT_CHARS = int(_get("LOCAL_RUNTIME_MAX_INPUT_CHARS", "8000") or "8000")
+# Free RAM required before a run: when the model is not yet loaded in Ollama it needs
+# room to load (llama3.2:1b ~1.3 GB); when already resident only working headroom.
+MIN_FREE_MB_COLD = int(_get("LOCAL_RUNTIME_MIN_FREE_MB", "1500") or "1500")
+MIN_FREE_MB_WARM = int(_get("LOCAL_RUNTIME_MIN_FREE_MB_LOADED", "400") or "400")
 # Prompt file (.json or .txt, see README). LOCAL_RUNTIME_PROMPT_FILE (env, then config.json)
 # wins; an explicit empty value or "builtin" selects the built-in prompt. If it is not set
 # anywhere, config.defaults.json "prompt_file" is used, resolved against that file's folder

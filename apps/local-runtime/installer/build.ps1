@@ -20,7 +20,7 @@ Write-Output "version $version"
 & $py -m PyInstaller --noconfirm --clean --onedir --console `
   --name agenthub-local-runtime `
   --distpath (Join-Path $root 'build\dist') --workpath (Join-Path $root 'build\work') --specpath (Join-Path $root 'build') `
-  --paths $root --collect-submodules uvicorn --collect-data docx `
+  --paths $root --collect-submodules uvicorn --hidden-import psutil --collect-data docx `
   (Join-Path $root 'installer\entry.py')
 if ($LASTEXITCODE -ne 0) { throw "PyInstaller failed" }
 

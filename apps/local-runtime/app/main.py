@@ -111,6 +111,7 @@ def job_status(job_id: str) -> dict[str, Any]:
         "result_path": job.get("result_path"),
         "result": job.get("result"),
         "error": job.get("error"),
+        "error_code": job.get("error_code"),
         "created_at": job.get("created_at"),
         "started_at": job.get("started_at"),
         "finished_at": job.get("finished_at"),

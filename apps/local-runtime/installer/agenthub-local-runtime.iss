@@ -32,7 +32,7 @@ Source: "..\build\dist\agenthub-local-runtime\*"; DestDir: "{app}"; Flags: ignor
 [Icons]
 Name: "{group}\Start AgentHub Local Runtime"; Filename: "{sys}\wscript.exe"; Parameters: """{app}\start-hidden.vbs"""; WorkingDir: "{app}"
 Name: "{group}\Stop AgentHub Local Runtime"; Filename: "{sys}\taskkill.exe"; Parameters: "/IM {#AppExe} /F"
-Name: "{group}\Setup - check Ollama and model"; Filename: "{app}\{#AppExe}"; Parameters: "setup --open-browser"; WorkingDir: "{app}"
+Name: "{group}\Setup - check Ollama and model"; Filename: "{app}\{#AppExe}"; Parameters: "setup --open-browser --pause"; WorkingDir: "{app}"
 Name: "{group}\Uninstall AgentHub Local Runtime"; Filename: "{uninstallexe}"
 Name: "{userstartup}\AgentHub Local Runtime"; Filename: "{sys}\wscript.exe"; Parameters: """{app}\start-hidden.vbs"""; WorkingDir: "{app}"; Tasks: autostart
 

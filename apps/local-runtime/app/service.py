@@ -123,7 +123,31 @@ def _pull_model(model: str) -> bool:
         return False
 
 
+def _wait_for_key(message: str = "Press any key to close this window...") -> None:
+    """Keep a console window open until the user presses a key (no-op without a console)."""
+    try:
+        if not (sys.stdin and sys.stdin.isatty()):
+            return
+        print(f"\n{message}", flush=True)
+        if os.name == "nt":
+            import msvcrt
+
+            msvcrt.getch()
+        else:
+            input()
+    except Exception:
+        pass
+
+
 def setup(argv: list[str]) -> int:
+    """Run setup; pause on any problem (or always with --pause) so the message stays visible."""
+    rc = _setup(argv)
+    if "--no-pause" not in argv and (rc != 0 or "--pause" in argv):
+        _wait_for_key()
+    return rc
+
+
+def _setup(argv: list[str]) -> int:
     from .ollama_notes import model_available, ollama_is_up, prompt_info
 
     no_pull = "--no-pull" in argv

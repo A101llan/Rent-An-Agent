@@ -95,6 +95,25 @@ def _output_path(input_paths: list[Path], requested: str | None = None) -> Path:
     return config.OUT_DIR / "meeting-notes.json"
 
 
+def truncate_input(text: str, limit: int | None = None) -> tuple[str, dict[str, Any] | None]:
+    """Cap input length (keep the start, cut at a line break). Returns (text, note|None)."""
+    limit = config.MAX_INPUT_CHARS if limit is None else limit
+    if limit <= 0 or len(text) <= limit:
+        return text, None
+    cut = text.rfind("\n", 0, limit)
+    cut = cut if cut > limit * 0.8 else limit
+    kept = text[:cut]
+    note = {
+        "truncated": True,
+        "original_chars": len(text),
+        "kept_chars": len(kept),
+        "limit_chars": limit,
+        "message": f"Document was too long; only the first {len(kept)} of {len(text)} characters were processed.",
+    }
+    logger.warning("input truncated: %s/%s chars", len(kept), len(text))
+    return kept + "\n\n[... document truncated ...]", note
+
+
 def extract_to_file(
     input_paths: list[Path],
     out_path: Path,
@@ -113,6 +132,7 @@ def extract_to_file(
         raise RuntimeError("no input text - provide input_paths or pick_files")
 
     notes = "\n\n---\n\n".join(chunks)
+    notes, truncation = truncate_input(notes)
     result = meeting_notes_response(notes)
 
     # Canned demo output (LOCAL_RUNTIME_ALLOW_CANNED=1) is never metered.
@@ -124,6 +144,7 @@ def extract_to_file(
         "usage": result["usage"],
         "source": result.get("source"),
         "model_meta": result.get("meta"),
+        "input_truncated": truncation,
         "job_id": job_id,
         "input_paths": [str(p) for p in input_paths],
         "session": session_info if session_info is not None else session.public_summary(),
@@ -181,6 +202,7 @@ def _run_job(job_id: str) -> None:
             job = _jobs[job_id]
             job["status"] = "failed"
             job["error"] = str(exc)
+            job["error_code"] = getattr(exc, "code", None) or type(exc).__name__
             job["finished_at"] = _now_iso()
 
 
@@ -236,6 +258,7 @@ def start_meeting_notes_job(
         "result_path": None,
         "result": None,
         "error": None,
+        "error_code": None,
         "cancel_requested": False,
     }
     with _lock:

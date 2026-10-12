@@ -112,7 +112,25 @@ def prompt_info() -> dict[str, Any]:
             "prompt_file": ov["path"] if ov else None}
 
 
+def _safety_options(extra: dict[str, Any] | None = None) -> dict[str, Any]:
+    """Merge prompt-file options with sidecar caps; caps always win (lower num_predict kept)."""
+    opts = dict(extra or {})
+    cap = config.OLLAMA_NUM_PREDICT
+    cur = opts.get("num_predict")
+    opts["num_predict"] = min(cur, cap) if isinstance(cur, int) and cur > 0 else cap
+    opts["num_ctx"] = config.OLLAMA_NUM_CTX
+    return opts
+
+
 def _build_request(notes: str) -> tuple[dict[str, Any], str]:
+    body, name = _build_request_raw(notes)
+    if not body.get("format"):
+        body["format"] = "json"
+    body["options"] = _safety_options(body.get("options"))
+    return body, name
+
+
+def _build_request_raw(notes: str) -> tuple[dict[str, Any], str]:
     ov = load_prompt_override()
     if not ov:
         system, user = _meeting_extraction_prompt(notes)
@@ -270,12 +288,59 @@ def extract_meeting_notes_via_ollama(notes: str) -> dict | None:
 
 
 class ExtractionError(RuntimeError):
-    pass
+    code = "extraction_failed"
+
+
+class LowMemoryError(ExtractionError):
+    code = "low_memory"
+
+
+def model_loaded(model: str | None = None) -> bool:
+    """True if Ollama already has the model resident (/api/ps)."""
+    model = model or config.OLLAMA_MODEL
+    try:
+        with urllib.request.urlopen(f"{config.OLLAMA_BASE_URL}/api/ps", timeout=3) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+        names = {m.get("name") or m.get("model") for m in data.get("models", [])}
+        want = model if ":" in model else f"{model}:latest"
+        return want in names or model in names
+    except Exception:
+        return False
+
+
+def free_ram_mb() -> int | None:
+    try:
+        import psutil
+
+        return int(psutil.virtual_memory().available // (1024 * 1024))
+    except Exception:
+        return None
+
+
+def check_memory() -> dict[str, Any]:
+    """Raise LowMemoryError if there is not enough free RAM to run safely."""
+    free = free_ram_mb()
+    loaded = model_loaded()
+    need = config.MIN_FREE_MB_WARM if loaded else config.MIN_FREE_MB_COLD
+    info = {"free_mb": free, "required_mb": need, "model_loaded": loaded}
+    if free is not None and free < need:
+        raise LowMemoryError(
+            f"Not enough free memory to run the meeting-notes model safely: {free} MB free, "
+            f"{need} MB needed. Close other apps (browser tabs, Office, etc.) and try again. "
+            "Nothing was processed and no usage was reported."
+        )
+    return info
 
 
 def meeting_notes_response(notes: str) -> dict:
-    """Ollama extraction. Canned output only if LOCAL_RUNTIME_ALLOW_CANNED=1 (labeled)."""
+    """Ollama extraction. Canned output only if LOCAL_RUNTIME_ALLOW_CANNED=1 (labeled).
+
+    Raises LowMemoryError before calling Ollama when free RAM is below the threshold.
+    """
+    memory = check_memory()
     result = extract_meeting_notes_via_ollama(notes)
+    if result:
+        result["meta"]["memory"] = memory
     if result:
         return {
             "status": "completed",

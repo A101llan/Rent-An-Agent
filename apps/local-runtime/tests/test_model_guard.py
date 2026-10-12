@@ -174,3 +174,20 @@ def test_ui_shows_friendly_notice(monkeypatch, code, needle):
     jobs._jobs["jx"] = {"id": "jx", "status": "failed", "error_code": code, "error": msg}
     j = TestClient(main.app).get("/ui/api/jobs/jx").json()
     assert j["code"] == code and needle in j["message"]
+
+
+def test_fallback_and_models_read_from_config_files(tmp_path, monkeypatch):
+    import importlib
+
+    from app import config as cfg
+    home = tmp_path / "home"
+    home.mkdir()
+    (home / "config.json").write_text(json.dumps({"fallback_model": "small:1b", "models": {"big:3b": {"min_free_mb": 3000}}}))
+    monkeypatch.setenv("LOCAL_RUNTIME_HOME", str(home))
+    monkeypatch.delenv("LOCAL_RUNTIME_FALLBACK_MODEL", raising=False)
+    try:
+        c = importlib.reload(cfg)
+        assert c.FALLBACK_MODEL == "small:1b" and c.model_limits("big:3b")["min_free_mb"] == 3000
+    finally:
+        monkeypatch.undo()
+        importlib.reload(cfg)

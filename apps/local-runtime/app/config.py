@@ -137,7 +137,8 @@ MIN_FREE_MB_WARM = _limit(("LOCAL_RUNTIME_MIN_FREE_MB_LOADED",), "min_free_mb_lo
 # model's cold threshold but meets the fallback's. No fallback when unset (code default).
 _MODELS_RAW = _FILE.get("models") if isinstance(_FILE.get("models"), dict) else _DEFAULTS.get("models")
 MODELS: dict = _MODELS_RAW if isinstance(_MODELS_RAW, dict) else {}
-FALLBACK_MODEL = (_get("LOCAL_RUNTIME_FALLBACK_MODEL") or str(_DEFAULTS.get("fallback_model") or "")).strip() or None
+FALLBACK_MODEL = (_get("LOCAL_RUNTIME_FALLBACK_MODEL") or str(_FILE.get("fallback_model") or "")
+                  or str(_DEFAULTS.get("fallback_model") or "")).strip() or None
 _LIMIT_ENV = {"timeout_s": ("LOCAL_RUNTIME_TIMEOUT_S", "OLLAMA_TIMEOUT"), "min_free_mb": ("LOCAL_RUNTIME_MIN_FREE_MB",),
               "min_free_mb_loaded": ("LOCAL_RUNTIME_MIN_FREE_MB_LOADED",)}
 

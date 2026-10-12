@@ -173,3 +173,4 @@ Bugs found by the Ollama Integrator in real runs:
 - **Choice:** an `[InstallDelete]` entry removes `{userstartup}\AgentHub Local Runtime.lnk` when the `autostart` task is not selected.
 - **Why:** during the real test pass, a silent 0.1.0 → 0.2.0 upgrade without `autostart` kept the old login shortcut, because Inno never deletes icons from tasks that are no longer selected.
 - **Alternatives:** delete it in `[Code]` (more code), or document a manual cleanup step.
+- **Follow-up from the real test pass:** `fallback_model` is now also read from `config.json` (env > `config.json` > `config.defaults.json`), the same as `models`. The first real fallback run found that only the defaults file was being read.

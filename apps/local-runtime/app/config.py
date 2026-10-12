@@ -130,6 +130,36 @@ if not isinstance(OLLAMA_FORMAT, dict):
 # room to load (llama3.2:1b ~1.3 GB); when already resident only working headroom.
 MIN_FREE_MB_COLD = _limit(("LOCAL_RUNTIME_MIN_FREE_MB",), "min_free_mb", 1500, 100, 65536)
 MIN_FREE_MB_WARM = _limit(("LOCAL_RUNTIME_MIN_FREE_MB_LOADED",), "min_free_mb_loaded", 400, 50, 65536)
+
+# Per-model guard values + automatic fallback (D14). Optional "models" map in config.json or
+# config.defaults.json: {"qwen2.5:3b": {"timeout_s": 180, "min_free_mb": 3000, "min_free_mb_loaded": 300}}.
+# Optional "fallback_model" (LOCAL_RUNTIME_FALLBACK_MODEL): used when free RAM is below the chosen
+# model's cold threshold but meets the fallback's. No fallback when unset (code default).
+_MODELS_RAW = _FILE.get("models") if isinstance(_FILE.get("models"), dict) else _DEFAULTS.get("models")
+MODELS: dict = _MODELS_RAW if isinstance(_MODELS_RAW, dict) else {}
+FALLBACK_MODEL = (_get("LOCAL_RUNTIME_FALLBACK_MODEL") or str(_DEFAULTS.get("fallback_model") or "")).strip() or None
+_LIMIT_ENV = {"timeout_s": ("LOCAL_RUNTIME_TIMEOUT_S", "OLLAMA_TIMEOUT"), "min_free_mb": ("LOCAL_RUNTIME_MIN_FREE_MB",),
+              "min_free_mb_loaded": ("LOCAL_RUNTIME_MIN_FREE_MB_LOADED",)}
+
+
+def model_limits(model: str) -> dict:
+    """timeout_s / min_free_mb / min_free_mb_loaded for a model.
+
+    An env var set for this run wins; then the model's entry in "models"; then the global value.
+    """
+    base = {"timeout_s": OLLAMA_TIMEOUT_SECONDS, "min_free_mb": MIN_FREE_MB_COLD, "min_free_mb_loaded": MIN_FREE_MB_WARM}
+    entry = MODELS.get(model) or MODELS.get(model.split(":")[0]) or {}
+    out = dict(base)
+    for key in base:
+        if any(os.getenv(n) for n in _LIMIT_ENV[key]):
+            continue
+        v = entry.get(key) if isinstance(entry, dict) else None
+        try:
+            if v is not None and float(v) > 0:
+                out[key] = float(v) if key == "timeout_s" else int(float(v))
+        except (TypeError, ValueError):
+            pass
+    return out
 # Prompt file (.json or .txt, see README). LOCAL_RUNTIME_PROMPT_FILE (env, then config.json)
 # wins; an explicit empty value or "builtin" selects the built-in prompt. If it is not set
 # anywhere, config.defaults.json "prompt_file" is used, resolved against that file's folder

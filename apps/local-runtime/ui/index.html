@@ -73,7 +73,9 @@ $("run").onclick = async () => {
 function list(items, fmt){ return items && items.length ? "<ul>" + items.map(i => "<li>" + fmt(i) + "</li>").join("") + "</ul>" : "<p><small>None found.</small></p>"; }
 function render(j){
   const o = j.output || {};
-  $("result").innerHTML = (j.truncation_message ? '<div class="trunc">&#9888; Document truncated: ' + esc(j.truncation_message) + ' The notes below cover only that part. Split the document to process the rest.</div>' : "") +
+  $("result").innerHTML = (j.model_fallback ? '<div class=\"warn\">&#9432; ' + esc(j.model_fallback.message) + '</div>' : "") +
+    (j.model_used ? '<p><small>Model: ' + esc(j.model_used) + '</small></p>' : "") +
+    (j.truncation_message ? '<div class="trunc">&#9888; Document truncated: ' + esc(j.truncation_message) + ' The notes below cover only that part. Split the document to process the rest.</div>' : "") +
     "<h3>Summary</h3><p>" + esc(o.summary) + "</p>" +
     "<h3>Decisions</h3>" + list(o.decisions, esc) +
     "<h3>Action items</h3>" + list(o.action_items, a => "<b>" + esc(a.owner) + "</b>: " + esc(a.task)) +

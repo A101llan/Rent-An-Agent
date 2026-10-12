@@ -50,6 +50,8 @@ MESSAGES: dict[str, str] = {
                "try again. You were not charged.",
     "ollama_down": "The local AI engine (Ollama) isn't running. Start 'Ollama' from the Start menu "
                    "(or install it from ollama.com/download/windows), then try again.",
+    "model_missing": "The AI model isn't downloaded yet. Open 'Setup - check Ollama and model' from the Start menu "
+                     "(or run 'ollama pull <model>'), then try again. You were not charged.",
     "extraction_failed": "The AI model couldn't produce meeting notes for this document. Try again, or try "
                          "a different document. You were not charged.",
     "unsupported_file_type": "Please choose a Word document (.docx).",
@@ -65,7 +67,7 @@ def friendly(code: str | None, fallback: str | None = None) -> str:
 
 def classify_job_error(job: dict[str, Any]) -> str:
     code = job.get("error_code")
-    if code in ("low_memory",):
+    if code in ("low_memory", "ollama_down", "model_missing", "timeout"):
         return code
     text = (job.get("error") or "").lower()
     if "session_not_bound" in text:
@@ -232,6 +234,8 @@ def ui_job(job_id: str):
             msg = (f"Not enough free memory: {mem['free_mb']} MB of RAM free, {mem['required_mb']} MB needed. "
                    "Close other apps (browser tabs, Office, games), then retry. "
                    "Nothing was processed and you were not charged.")
+        if job.get("error_code") in ("ollama_down", "model_missing") and job.get("error"):
+            msg = job["error"]
         out.update({"ok": False, "code": code, "message": msg, "memory": mem})
     elif job["status"] == "completed":
         res = job.get("result") or {}
@@ -242,6 +246,8 @@ def ui_job(job_id: str):
             "truncation_message": (trunc or {}).get("message"),
             "warnings": res.get("warnings") or [],
             "onboarding": res.get("onboarding"),
+            "model_used": res.get("model_used"),
+            "model_fallback": res.get("model_fallback"),
             "json_url": f"/ui/api/jobs/{job_id}/json",
             "result_path": res.get("result_path"),
         })

@@ -140,3 +140,31 @@ Context: real .docx jobs could freeze the renter's PC. The reference PC is a 2-c
   - 0.1.1: wrong, because this is new features, not only fixes.
   - Stay at 0.1.0: a renter couldn't tell the old build from the new one, and the installer would overwrite it with the same version.
 - **`min_sidecar_version` is unchanged at 0.1.0** in the manifests and seeds. 0.2.0 still satisfies `>=0.1.0`, and the cloud contract doesn't need any 0.2.0-only feature. Raise it only once the cloud depends on something new, for example `/ui`.
+
+## 2026-10-12 Â· real test-pass fixes (branch `local-mvp-hardening`)
+
+### D14. Friendly Ollama errors, unload on timeout or abort, per-model RAM guard with fallback
+Bugs found by the Ollama Integrator in real runs:
+1. A run with Ollama down showed a raw "[WinError 10061]".
+2. A missing model showed a raw "ollama HTTP 404".
+3. After a timeout or abort, the model stayed in RAM for 5 minutes.
+
+- **Choice:**
+  - **Error codes:** extraction failures now carry a code: `ollama_down` (connection refused, or Ollama not answering), `model_missing` (HTTP 404 from `/api/chat`), or `timeout`. They raise `OllamaDownError`, `ModelMissingError` or `ExtractionTimeoutError`.
+  - **Messages:** the text is the same OLLAMA NOT RUNNING / MODEL MISSING (`ollama pull <model>`) notice used by `check` and `/health`. It is shown in the CLI (exit 4, without the "EXTRACTION FAILED" prefix), in the job `error` / `error_code`, and on `/ui`.
+  - **Unloading:** on a timeout the sidecar sends `POST /api/generate {"model": m, "keep_alive": 0}`, best effort, to unload the model. Cancelling a running job does the same, because the blocking HTTP call can't be interrupted.
+  - **Per-model guard values:** an optional `models` map in `config.json` or `config.defaults.json`, e.g. `{"qwen2.5:3b": {"timeout_s": 180, "min_free_mb": 3000, "min_free_mb_loaded": 300}}`, plus an optional `fallback_model` (env `LOCAL_RUNTIME_FALLBACK_MODEL`).
+  - **Precedence:** an env var set for the run > the model's map entry > the global value (D11).
+  - **Fallback:** if free RAM is below the chosen model's cold threshold, the fallback model is used when it is pulled and its own threshold is met. Otherwise the job is refused as before, with the primary model's numbers.
+  - **Reporting:** the output JSON gets `model_used` and `model_fallback` (`{from, to, reason, free_mb, primary_required_mb, message}`), and `/ui` shows a note.
+- **Code defaults are unchanged:** no `models` map and no fallback, so behaviour is identical until the Ollama Integrator sets them in `config.defaults.json` (planned: qwen2.5:3b 180 s / 3000 / 300, fallback llama3.2:1b 1300 / 300).
+- **Why:**
+  - Raw socket and HTTP errors meant nothing to renters.
+  - A model left loaded after a timeout keeps about 2 GB of RAM pinned on a PC with about 1 GB free.
+  - A 3B model only fits when RAM allows, and degrading to 1B beats refusing.
+- **Alternatives:**
+  - Pre-flight `/api/tags` on every run (an extra call, and still racy).
+  - Streaming with client-side abort (more code).
+  - A global `OLLAMA_KEEP_ALIVE` (a shared Ollama setting, owned by the Integrator).
+  - Always use the 1B model (worse decisions, per the Integrator's numbers).
+

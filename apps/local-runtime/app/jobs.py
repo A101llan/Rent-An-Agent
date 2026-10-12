@@ -145,6 +145,8 @@ def extract_to_file(
         "usage": result["usage"],
         "source": result.get("source"),
         "model_meta": result.get("meta"),
+        "model_used": (result.get("meta") or {}).get("model"),
+        "model_fallback": (result.get("meta") or {}).get("fallback"),
         "input_truncated": truncation,
         "warnings": [f"WARNING: INPUT TRUNCATED - {truncation['message']} Notes cover only the processed part."]
         if truncation else [],
@@ -196,6 +198,8 @@ def _run_job(job_id: str) -> None:
                     "output": payload["output"],
                     "usage": payload["usage"],
                     "source": payload.get("source"),
+                    "model_used": payload.get("model_used"),
+                    "model_fallback": payload.get("model_fallback"),
                     "model_meta": payload.get("model_meta"),
                     "input_truncated": payload.get("input_truncated"),
                     "warnings": payload.get("warnings"),
@@ -294,6 +298,10 @@ def cancel_job(job_id: str) -> dict[str, Any] | None:
         if not job:
             return None
         job["cancel_requested"] = True
+        if job["status"] == "running":
+            # Abort: the HTTP call can't be interrupted, but free the model's RAM right away.
+            from .ollama_notes import unload_model
+            threading.Thread(target=unload_model, daemon=True).start()
         if job["status"] in {"queued", "running"}:
             job["status"] = "cancelled"
             job["finished_at"] = _now_iso()

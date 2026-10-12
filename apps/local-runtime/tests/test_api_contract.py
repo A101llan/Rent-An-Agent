@@ -27,13 +27,17 @@ class ParseApiErrorTests(unittest.TestCase):
 
 
 class ClaimErrorCodeTests(unittest.TestCase):
-    def test_prefers_api_code(self):
+    def test_prefers_mapped_api_code(self):
         body = {"error": {"code": "SESSION_NOT_LOCAL", "message": "nope"}}
-        assert claim_error_code(409, body) == "session_not_local"
+        assert claim_error_code(409, body) == "not_local_session"
+        nested = {"detail": {"error": {"code": "INVALID_SESSION_TOKEN", "message": "bad"}}}
+        assert claim_error_code(401, nested) == "unauthorized"
 
     def test_falls_back_to_status(self):
         assert claim_error_code(404, None) == "session_not_found"
         assert claim_error_code(422, {"error": {"code": "VALIDATION_ERROR"}}) == "validation_error"
+        assert claim_error_code(403, {"detail": {"error": {"code": "SOMETHING_ELSE"}}}) == "forbidden"
+        assert claim_error_code(500, None) == "claim_failed"
 
 
 class NormalizeSuccessTests(unittest.TestCase):

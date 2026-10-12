@@ -31,9 +31,37 @@ TEST_DATABASE_URL = os.getenv(
 )
 
 
+def error_body(response) -> dict:
+    """Extract the API error envelope (detail.error per the local-runtime contract)."""
+    body = response.json()
+    if "error" in body:
+        return body["error"]
+    return body["detail"]["error"]
+
+
 @pytest.fixture(scope="session")
 def anyio_backend():
     return "asyncio"
+
+
+@pytest_asyncio.fixture(autouse=True)
+async def reset_redis_client():
+    """Avoid reusing a module-level async Redis client across per-test event loops."""
+    import app.core.deps as deps
+
+    if deps._redis is not None:
+        try:
+            await deps._redis.aclose()
+        except Exception:
+            pass
+        deps._redis = None
+    yield
+    if deps._redis is not None:
+        try:
+            await deps._redis.aclose()
+        except Exception:
+            pass
+        deps._redis = None
 
 
 @pytest_asyncio.fixture

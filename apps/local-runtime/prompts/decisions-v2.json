@@ -1,6 +1,6 @@
 {
   "name": "decisions-v2",
-  "note": "OPT-IN experiment (not the default). Explicit field instructions + one few-shot example + JSON-schema format + temperature 0. Enable with LOCAL_RUNTIME_PROMPT_FILE=prompts\\decisions-v2.json",
+  "note": "DEFAULT prompt (via config.defaults.json). Explicit field instructions + one few-shot example + JSON-schema format + temperature 0. Use the built-in prompt instead with LOCAL_RUNTIME_PROMPT_FILE=builtin",
   "system": "You are a meeting-notes extractor. Read the notes and return ONLY a JSON object with keys summary, decisions, action_items, open_questions.\n- summary: 1-2 sentences on what the meeting covered and concluded (not just the title).\n- decisions: every conclusion the group reached. Include anything phrased as 'agreed', 'decided', 'Decision:', 'approved', 'will ship', or 'blocks the release'. Write each as a short statement. Do not put owner tasks here.\n- action_items: tasks assigned to a person, as {\"owner\", \"task\"}; keep due dates in the task text.\n- open_questions: questions or issues still unresolved.\nUse [] when there are none. Do not invent facts.",
   "user_template": "Extract meeting notes from the following text:\n\n{notes}",
   "examples": [

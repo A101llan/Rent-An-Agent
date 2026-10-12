@@ -1,14 +1,23 @@
 """Cloud session claim + usage reporting for the local runtime.
 
-Contract: docs/LOCAL_RUNTIME_API.md (helpers in api_contract.py).
+Contract (Local Rent Architect, apps/api):
+
+  POST {API}/api/v1/sessions/{id}/local/claim     header X-Session-Token
+      200 -> {session_id, expires_at, manifest, agent_slug, agent_version, runtime_provider}
+      (unknown fields ignored; claim never extends expires_at)
+      (X-Session-Token: unknown session/bad token -> 401 INVALID_SESSION_TOKEN; owner JWT: 404
+       SESSION_NOT_FOUND; 409 SESSION_NOT_LOCAL; 410 SESSION_EXPIRED; 422 VALIDATION_ERROR)
+  POST {API}/api/v1/sessions/{id}/usage           header X-Session-Token
+      body {metric_type, quantity (>0), unit, execution_id?} -> 201 UsageRecord
 
 Rules enforced here:
   * FAIL CLOSED on any non-200 claim response (no extraction allowed).
   * Offline stub bind ONLY when the API is unreachable (refused/timeout) AND
     LOCAL_RUNTIME_OFFLINE_STUB=1 (config.OFFLINE_STUB). Clearly labeled mode.
-  * Usage: API unreachable -> append to local pending queue (usage-pending.jsonl)
-    for later sync; non-2xx HTTP -> logged failure (usage-failed.jsonl), never
-    reported as success.
+  * Errors use {detail:{error:{code,message,request_id}}} (a top-level error object
+    is also accepted); handling keys on code.
+  * Usage: network error or 5xx -> local pending queue (usage-pending.jsonl) for sync;
+    any 4xx (incl. 422 VALIDATION_ERROR) is terminal -> usage-failed.jsonl, dropped.
   * Never calls runtime-manager.
 """
 
@@ -25,12 +34,7 @@ from datetime import datetime, timezone
 from typing import Any
 
 from . import config
-from .api_contract import (
-    claim_error_code,
-    normalize_claim_success,
-    normalize_usage_success,
-    parse_api_error,
-)
+from .api_contract import CLAIM_STATUS_FALLBACK, claim_error_code, parse_api_error
 
 logger = logging.getLogger("local-runtime.session")
 
@@ -74,6 +78,28 @@ def _api_url(template: str, session_id: str) -> str:
     return config.AGENTHUB_API_BASE + template.format(session_id=session_id)
 
 
+def _error_code(body: Any) -> str | None:
+    """Contract envelope: detail.error, or a top-level error object."""
+    err = parse_api_error(body)
+    if not err:
+        return None
+    code = err.get("code")
+    return str(code) if code else None
+
+
+def _error_message(body: Any) -> str | None:
+    err = parse_api_error(body)
+    if not err:
+        return None
+    message = err.get("message")
+    return str(message) if message else None
+
+
+def _retryable(res: dict[str, Any]) -> bool:
+    """Only network errors and 5xx are retryable; every 4xx is terminal."""
+    return res["kind"] == "unreachable" or (res["kind"] == "http_error" and (res["status"] or 0) >= 500)
+
+
 def _http_json(
     method: str,
     url: str,
@@ -112,15 +138,6 @@ def _http_json(
     except (urllib.error.URLError, ConnectionError, socket.timeout, TimeoutError, OSError) as exc:
         reason = getattr(exc, "reason", exc)
         return {"kind": "unreachable", "status": None, "body": None, "error": str(reason)}
-
-
-def _claim_route_present() -> bool | None:
-    """Diagnostic only: is the claim route in the live OpenAPI schema?"""
-    res = _http_json("GET", config.AGENTHUB_API_BASE + "/openapi.json")
-    if res["kind"] != "ok" or not isinstance(res["body"], dict):
-        return None
-    paths = res["body"].get("paths") or {}
-    return config.CLAIM_PATH_TEMPLATE in paths or any(p.endswith("/local/claim") for p in paths)
 
 
 # ---------------------------------------------------------------- state
@@ -278,28 +295,18 @@ def claim_session(session_token: str, session_id: str) -> dict[str, Any]:
     url = _api_url(config.CLAIM_PATH_TEMPLATE, sid)
     res = _http_json("POST", url, token=token, payload={})
 
-    if res["kind"] == "ok" and res["status"] == 200:
-        claim = normalize_claim_success(res["body"])
-        if not claim:
-            reason = {
-                "error": "invalid_claim_response",
-                "http_status": 200,
-                "detail": res["body"],
-                "url": url,
-            }
-            logger.warning("claim failed closed: invalid 200 body")
-            _clear(reason)
-            return {"bound": False, "fail_closed": True, "status_code": 502, **reason}
-        claimed_sid = claim["session_id"]
-        expires_at = _parse_expires_at(claim.get("expires_at"))
+    if res["kind"] == "ok" and res["status"] == 200 and isinstance(res["body"], dict):
+        body = res["body"]
+        claimed_sid = str(body.get("session_id") or sid)
+        expires_at = _parse_expires_at(body.get("expires_at"))
         logger.info("local claim OK session_id=%s expires_at=%s", claimed_sid, expires_at)
         result = _store_bound(
             token=token,
             sid=claimed_sid,
             mode=MODE_CLAIMED,
             expires_at=expires_at,
-            manifest=claim["manifest"],
-            remote=res["body"] if isinstance(res["body"], dict) else {},
+            manifest=body.get("manifest") if isinstance(body.get("manifest"), dict) else {},
+            remote=body,
         )
         if expires_at and datetime.now(timezone.utc) >= expires_at:
             _clear({"error": "session_expired", "http_status": 200, "detail": "expires_at already past"})
@@ -328,30 +335,24 @@ def claim_session(session_token: str, session_id: str) -> dict[str, Any]:
         _clear(reason)
         return {"bound": False, "fail_closed": True, "status_code": 503, **reason}
 
-    # Any HTTP response other than 200 -> fail closed.
+    # Any HTTP response other than 200 (incl. 5xx) -> fail closed.
     status = res["status"]
-    api_error = parse_api_error(res["body"])
+    api_code = _error_code(res["body"])
     code = claim_error_code(status, res["body"])
     reason: dict[str, Any] = {
         "error": code,
+        "api_code": api_code,
         "http_status": status,
+        "message": _error_message(res["body"]),
         "detail": res["body"],
         "url": url,
     }
-    if api_error:
-        reason["api_error"] = api_error
-    if status == 404:
-        present = _claim_route_present()
-        reason["claim_route_present_in_openapi"] = present
-        if present is False:
-            reason["hint"] = "claim route not deployed on this API yet (Local Rent Architect)"
-    logger.warning("claim failed closed: HTTP %s (%s)", status, code)
+    logger.warning("claim failed closed: HTTP %s code=%s", status, api_code)
     _clear(reason)
-    known_statuses = {400, 401, 403, 404, 409, 410, 422}
     return {
         "bound": False,
         "fail_closed": True,
-        "status_code": status if status in known_statuses else 502,
+        "status_code": status if status in CLAIM_STATUS_FALLBACK else 502,
         **reason,
     }
 
@@ -436,11 +437,13 @@ def report_usage_metric(
     res = _http_json("POST", url, token=str(token), payload=payload)
 
     if res["kind"] == "ok":
-        cloud_row = normalize_usage_success(res["body"]) or res["body"]
         logger.info("usage SENT metric_type=%s status=%s", metric_type, res["status"])
-        return {**base, "outcome": "sent", "http_status": res["status"], "cloud_row": cloud_row}
+        return {**base, "outcome": "sent", "http_status": res["status"], "cloud_row": res["body"]}
 
-    if res["kind"] == "unreachable":
+    api_code = _error_code(res["body"])
+    if _retryable(res):
+        reason = (f"api_unreachable: {res['error']}" if res["kind"] == "unreachable"
+                  else f"HTTP {res['status']} {api_code or ''}".strip())
         row = {
             "status": "pending_sync",
             "queued_at": _now_iso(),
@@ -448,17 +451,27 @@ def report_usage_metric(
             "bind_mode": mode,
             "job_id": job_id,
             "payload": payload,
-            "reason": f"api_unreachable: {res['error']}",
+            "reason": reason,
             "attempts": 0,
         }
         _append_jsonl(config.USAGE_QUEUE_PATH, row)
-        logger.warning(
-            "usage QUEUED locally (API unreachable) metric_type=%s -> %s",
-            metric_type, config.USAGE_QUEUE_PATH,
-        )
-        return {**base, "outcome": "queued", "queue_path": str(config.USAGE_QUEUE_PATH), "reason": row["reason"]}
+        logger.warning("usage QUEUED (retryable: %s) metric_type=%s -> %s", reason, metric_type, config.USAGE_QUEUE_PATH)
+        return {**base, "outcome": "queued", "http_status": res["status"], "api_code": api_code,
+                "queue_path": str(config.USAGE_QUEUE_PATH), "reason": reason}
 
-    api_error = parse_api_error(res["body"])
+    # 4xx (incl. 422): terminal - log by code and drop; never queued or retried.
+    _log_failed(sid, mode, job_id, payload, url, res["status"], api_code, res["body"])
+    return {
+        **base,
+        "outcome": "failed",
+        "http_status": res["status"],
+        "api_code": api_code,
+        "detail": res["body"],
+        "failed_log": str(config.USAGE_FAILED_PATH),
+    }
+
+
+def _log_failed(sid, mode, job_id, payload, url, status, api_code, body) -> None:
     row = {
         "status": "failed",
         "failed_at": _now_iso(),
@@ -467,22 +480,13 @@ def report_usage_metric(
         "job_id": job_id,
         "payload": payload,
         "url": url,
-        "http_status": res["status"],
-        "detail": res["body"],
-        "api_error": api_error,
+        "http_status": status,
+        "api_code": api_code,
+        "detail": body,
     }
     _append_jsonl(config.USAGE_FAILED_PATH, row)
-    logger.error(
-        "usage FAILED HTTP %s metric_type=%s (logged to %s)",
-        res["status"], metric_type, config.USAGE_FAILED_PATH,
-    )
-    return {
-        **base,
-        "outcome": "failed",
-        "http_status": res["status"],
-        "detail": res["body"],
-        "failed_log": str(config.USAGE_FAILED_PATH),
-    }
+    logger.error("usage FAILED (terminal, dropped) HTTP %s code=%s metric_type=%s -> %s",
+                 status, api_code, (payload or {}).get("metric_type"), config.USAGE_FAILED_PATH)
 
 
 def report_job_usage(usage: dict[str, Any] | None, job_id: str | None = None) -> list[dict[str, Any]]:
@@ -506,7 +510,7 @@ def pending_usage() -> list[dict[str, Any]]:
 
 
 def sync_pending_usage(token_override: str | None = None) -> dict[str, Any]:
-    """Retry queued rows. 2xx -> removed; unreachable/HTTP error -> kept with last_error."""
+    """Retry queued rows. 2xx -> removed; network/5xx -> kept; 4xx -> usage-failed.jsonl + removed."""
     token_override = token_override or os.getenv("AGENTHUB_SESSION_TOKEN") or None
     with _queue_lock:
         rows = _read_jsonl(config.USAGE_QUEUE_PATH)
@@ -536,7 +540,16 @@ def sync_pending_usage(token_override: str | None = None) -> dict[str, Any]:
             synced += 1
             results.append({"session_id": sid, "metric_type": metric, "outcome": "sent", "http_status": res["status"], "cloud_row": res["body"]})
             continue
-        row["last_error"] = {"kind": res["kind"], "http_status": res["status"], "detail": res["body"] or res["error"]}
+        api_code = _error_code(res["body"])
+        if not _retryable(res):
+            url = _api_url(config.USAGE_PATH_TEMPLATE, str(sid))
+            _log_failed(sid, row.get("bind_mode"), row.get("job_id"), row.get("payload"), url,
+                        res["status"], api_code, res["body"])
+            results.append({"session_id": sid, "metric_type": metric, "outcome": "failed",
+                            "http_status": res["status"], "api_code": api_code})
+            continue
+        row["last_error"] = {"kind": res["kind"], "http_status": res["status"], "api_code": api_code,
+                             "detail": res["body"] or res["error"]}
         remaining.append(row)
         results.append({"session_id": sid, "metric_type": metric, "outcome": "kept", "last_error": row["last_error"]})
 

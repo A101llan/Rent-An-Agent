@@ -1,13 +1,18 @@
 """Shared HTTP contract helpers for AgentHub local-runtime ↔ apps/api.
 
-Canonical error envelope (all local-runtime endpoints):
+Canonical error envelope (``docs/local-runtime-contract.md``):
 
-    {"error": {"code": str, "message": str, "request_id": str | null, ...}}
+    {"detail": {"error": {"code": str, "message": str, "request_id": str | null}}}
 
-AppError responses are normalized by apps/api's global exception handler. Validation
-errors (422) use the same top-level ``error`` object with code ``VALIDATION_ERROR``.
+``parse_api_error`` also accepts a top-level ``{"error": {...}}`` object so either
+shape yields ``code`` and ``message``. Claim failures map those API codes to stable
+sidecar names (``CLAIM_ERROR_CODES``), then fall back to HTTP status.
 
-TODO(auth): ``session_token`` grants full session-scoped API access today; a narrower
+``normalize_claim_success`` / ``normalize_usage_success`` check the documented
+success fields. The sidecar ignores unknown fields and does not use these helpers
+to reject a 200/201 body.
+
+TODO(auth): ``session_token`` grants session-scoped API access today; a narrower
 device credential (claim code / lease cert) is planned but out of scope here.
 """
 
@@ -15,9 +20,15 @@ from __future__ import annotations
 
 from typing import Any
 
-# Sidecar-internal codes mapped from HTTP status when claim fails.
-CLAIM_HTTP_STATUS_CODES: dict[int, str] = {
-    400: "bad_request",
+# Contract codes (docs/local-runtime-contract.md) -> sidecar error names.
+CLAIM_ERROR_CODES = {
+    "INVALID_SESSION_TOKEN": "unauthorized",
+    "SESSION_NOT_FOUND": "session_not_found",
+    "SESSION_NOT_LOCAL": "not_local_session",
+    "SESSION_EXPIRED": "session_expired",
+    "VALIDATION_ERROR": "validation_error",
+}
+CLAIM_STATUS_FALLBACK = {
     401: "unauthorized",
     403: "forbidden",
     404: "session_not_found",
@@ -31,21 +42,22 @@ def parse_api_error(body: Any) -> dict[str, Any] | None:
     """Extract ``{"code", "message", ...}`` from an API error response body."""
     if not isinstance(body, dict):
         return None
-    if isinstance(body.get("error"), dict):
-        return body["error"]
     detail = body.get("detail")
     if isinstance(detail, dict) and isinstance(detail.get("error"), dict):
         return detail["error"]
+    if isinstance(body.get("error"), dict):
+        return body["error"]
     return None
 
 
 def claim_error_code(http_status: int | None, body: Any) -> str:
     """Map a failed claim HTTP response to a stable sidecar error code."""
     parsed = parse_api_error(body)
-    if parsed and parsed.get("code"):
-        return str(parsed["code"]).lower()
+    api_code = str(parsed.get("code")) if parsed and parsed.get("code") else ""
+    if api_code in CLAIM_ERROR_CODES:
+        return CLAIM_ERROR_CODES[api_code]
     if http_status is not None:
-        return CLAIM_HTTP_STATUS_CODES.get(http_status, "claim_failed")
+        return CLAIM_STATUS_FALLBACK.get(http_status, "claim_failed")
     return "claim_failed"
 
 

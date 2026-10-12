@@ -68,3 +68,6 @@ data/
 
 # Keep example env files
 !.env.local.example
+
+# AgentHub Local installer (dev copy; host releases via NEXT_PUBLIC_LOCAL_RUNTIME_DOWNLOAD_URL)
+apps/web/public/downloads/*.exe

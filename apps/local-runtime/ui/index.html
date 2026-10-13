@@ -2,13 +2,15 @@
 <html lang="en"><head><meta charset="utf-8"><title>AgentHub Local</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
-body{font-family:Segoe UI,system-ui,sans-serif;max-width:760px;margin:24px auto;padding:0 16px;color:#1d2330}
-h1{font-size:22px}section{border:1px solid #d8dce5;border-radius:10px;padding:16px;margin:14px 0}
-section.off{opacity:.45;pointer-events:none}label{display:block;margin:10px 0 4px;font-weight:600}
-input[type=text],input[type=password],textarea{width:100%;box-sizing:border-box;padding:8px;border:1px solid #bbc;border-radius:6px}
-button{margin-top:12px;padding:8px 16px;border:0;border-radius:6px;background:#2453d6;color:#fff;cursor:pointer}
-button:disabled{background:#99a}.err{background:#fdecec;color:#8a1111;padding:10px;border-radius:6px;margin-top:10px}
-.ok{color:#11702c}.trunc{background:#ffe1b3;border:2px solid #d97a00;color:#5a3200;font-weight:700;padding:12px;border-radius:8px;margin-bottom:12px}.warn{background:#fff6dc;padding:8px;border-radius:6px}ul{padding-left:20px}small{color:#667}
+body{font-family:Segoe UI,system-ui,sans-serif;max-width:760px;margin:0 auto;padding:24px 16px;background:#09090b;color:#f4f4f5;color-scheme:dark}
+html{background:#09090b}h1{font-size:22px}h2{font-size:18px}
+section{border:1px solid #27272a;border-radius:10px;padding:16px;margin:14px 0;background:#18181b}
+section.off{opacity:.45;pointer-events:none}label{display:block;margin:10px 0 4px;font-weight:600;color:#d4d4d8}
+input[type=text],input[type=password],textarea,select{width:100%;box-sizing:border-box;padding:8px;border:1px solid #3f3f46;border-radius:6px;background:#09090b;color:#f4f4f5;font:inherit}
+input:focus,textarea:focus,select:focus{outline:none;border-color:#6366f1}.other{margin-top:6px}
+button{margin-top:12px;padding:8px 16px;border:0;border-radius:6px;background:#4f46e5;color:#fff;cursor:pointer}
+button:disabled{background:#52525b}.err{background:#450a0a;color:#fecaca;padding:10px;border-radius:6px;margin-top:10px}
+a{color:#a5b4fc}.ok{color:#4ade80}.trunc{background:#431407;border:2px solid #d97a00;color:#fed7aa;font-weight:700;padding:12px;border-radius:8px;margin-bottom:12px}.warn{background:#422006;color:#fde68a;padding:8px;border-radius:6px}ul{padding-left:20px}small{color:#a1a1aa}
 </style></head><body>
 <h1>AgentHub Local &middot; Meeting Notes</h1>
 <p><small>Runs on this PC. Your document never leaves it; only usage counts are sent to AgentHub.</small></p>
@@ -34,9 +36,31 @@ const $ = id => document.getElementById(id);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 function err(el, m){ $(el).innerHTML = '<div class="err">' + esc(m) + '</div>'; }
 async function api(path, opts){ const r = await fetch(path, opts); let j = {}; try { j = await r.json(); } catch(e) {} return j; }
+const OTHER = "__other__";
+function questionField(q){
+  const id = "q_" + esc(q.id), qid = esc(q.id);
+  if (Array.isArray(q.options) && q.options.length){
+    return '<label for="'+id+'">'+esc(q.question)+'</label><select id="'+id+'" data-qsel="'+qid+'">' +
+      '<option value="" disabled selected>Select an option&hellip;</option>' +
+      q.options.map(o => '<option value="'+esc(o)+'">'+esc(o)+'</option>').join("") +
+      (q.allow_other ? '<option value="'+OTHER+'">Other&hellip;</option>' : "") + '</select>' +
+      (q.allow_other ? '<input type="text" class="other" id="'+id+'_other" data-qother="'+qid+'" placeholder="'+esc(q.placeholder || "Please specify")+'" aria-label="'+esc(q.question)+' (other)" hidden>' : "");
+  }
+  return '<label for="'+id+'">'+esc(q.question)+'</label><textarea rows="2" id="'+id+'" data-qid="'+qid+'" placeholder="'+esc(q.placeholder)+'"></textarea>';
+}
 function showQuestions(qs){
-  $("qs").innerHTML = qs.length ? qs.map(q => '<label for="q_'+esc(q.id)+'">'+esc(q.question)+'</label><textarea rows="2" id="q_'+esc(q.id)+'" data-qid="'+esc(q.id)+'" placeholder="'+esc(q.placeholder)+'"></textarea>').join("") : "<small>No questions for this agent.</small>";
+  $("qs").innerHTML = qs.length ? qs.map(questionField).join("") : "<small>No questions for this agent.</small>";
+  document.querySelectorAll("[data-qsel]").forEach(sel => sel.onchange = () => {
+    const o = document.querySelector('[data-qother="'+sel.dataset.qsel+'"]'); if (o) o.hidden = sel.value !== OTHER; });
   ["s2","s3"].forEach(s => $(s).classList.remove("off"));
+}
+function collectAnswers(){
+  const a = {};
+  document.querySelectorAll("[data-qid]").forEach(t => a[t.dataset.qid] = t.value);
+  document.querySelectorAll("[data-qsel]").forEach(sel => { const k = sel.dataset.qsel;
+    const o = document.querySelector('[data-qother="'+k+'"]');
+    a[k] = sel.value === OTHER ? (o ? o.value : "") : sel.value; });
+  return a;
 }
 async function refresh(){
   const st = await api("/ui/api/state");
@@ -59,7 +83,7 @@ $("run").onclick = async () => {
   $("run").disabled = true; $("runMsg").textContent = "Uploading...";
   const up = await api("/ui/api/upload?filename=" + encodeURIComponent(f.name), {method:"POST", headers:{...H,"Content-Type":"application/octet-stream"}, body: f});
   if (!up.ok){ $("run").disabled = false; return err("runMsg", up.message); }
-  const onboarding = {}; document.querySelectorAll("[data-qid]").forEach(t => onboarding[t.dataset.qid] = t.value);
+  const onboarding = collectAnswers();
   const st = await api("/ui/api/run", {method:"POST", headers:{...H,"Content-Type":"application/json"}, body: JSON.stringify({upload_id: up.upload_id, onboarding})});
   if (!st.ok){ $("run").disabled = false; return err("runMsg", st.message); }
   $("runMsg").textContent = "Working... this can take a minute or two on this PC.";

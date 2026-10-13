@@ -145,13 +145,21 @@ class UiRun(BaseModel):
     onboarding: dict[str, str] = {}
 
 
-def onboarding_questions(manifest: dict[str, Any] | None) -> list[dict[str, str]]:
+def onboarding_questions(manifest: dict[str, Any] | None) -> list[dict[str, Any]]:
     qs = ((manifest or {}).get("onboarding") or {}).get("questions") or []
     out = []
     for q in qs:
         if isinstance(q, dict) and q.get("id") and q.get("question"):
-            out.append({"id": str(q["id"]), "question": str(q["question"]),
-                        "placeholder": str(q.get("placeholder") or "")})
+            item: dict[str, Any] = {"id": str(q["id"]), "question": str(q["question"]),
+                                    "placeholder": str(q.get("placeholder") or "")}
+            # Closed-set answers (same contract as the web widget): render as a dropdown.
+            opts = q.get("options")
+            if isinstance(opts, list):
+                opts = [str(o) for o in opts if isinstance(o, (str, int, float)) and str(o).strip()]
+                if opts:
+                    item["options"] = opts
+                    item["allow_other"] = bool(q.get("allow_other"))
+            out.append(item)
     return out
 
 

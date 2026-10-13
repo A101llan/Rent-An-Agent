@@ -11,7 +11,7 @@ H = {"X-AgentHub-UI": "1"}
 SID = "35001634-0000-0000-0000-000000000000"
 MANIFEST = {"runtime": {"type": "local"}, "onboarding": {"questions": [
     {"id": "meeting_type", "question": "What type of meetings?", "placeholder": "standup"},
-    {"id": "output_format", "question": "Preferred format?"},
+    {"id": "output_format", "question": "Preferred format?", "options": ["Markdown", "PDF"], "allow_other": True},
     {"id": "team_names", "question": "Recurring attendees?"}]}}
 
 
@@ -149,3 +149,15 @@ def test_job_failures_mapped(client, monkeypatch, job, up, code, needle):
     assert j["code"] == code and needle in j["message"]
     if code == "low_memory":
         assert "Close other apps" in j["message"] and "then retry" in j["message"]
+
+
+def test_onboarding_questions_keep_dropdown_options():
+    from app.ui import onboarding_questions
+    qs = onboarding_questions(MANIFEST)
+    assert "options" not in qs[0]
+    assert qs[1]["options"] == ["Markdown", "PDF"] and qs[1]["allow_other"] is True
+
+
+def test_page_renders_select_for_options(client):
+    html = client.get("/ui").text
+    assert "<select" in html and "data-qsel" in html and "#09090b" in html

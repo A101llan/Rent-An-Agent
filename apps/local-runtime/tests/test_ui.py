@@ -149,3 +149,15 @@ def test_job_failures_mapped(client, monkeypatch, job, up, code, needle):
     assert j["code"] == code and needle in j["message"]
     if code == "low_memory":
         assert "Close other apps" in j["message"] and "then retry" in j["message"]
+
+
+def test_page_offline_motion_and_hooks(client):
+    """React Bits ports (D18): inline only, reduced-motion respected, ids used by tests/ui_browser.py kept."""
+    import re
+    html = client.get("/ui").text
+    assert not re.search(r"""(src|href)\s*=\s*["']?(https?:)?//""", html)  # no CDN / external requests
+    assert "@import" not in html and "fetch(\"http" not in html
+    assert "prefers-reduced-motion" in html and "React Bits" in html and "Commons Clause" in html
+    for i in ("sid", "tok", "claim", "claimMsg", "qs", "file", "run", "runMsg", "s4", "result"):
+        assert f'id="{i}"' in html
+    assert "Working..." in html and "Open saved JSON" in html

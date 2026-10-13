@@ -9,6 +9,23 @@ input[type=text],input[type=password],textarea{width:100%;box-sizing:border-box;
 button{margin-top:12px;padding:8px 16px;border:0;border-radius:6px;background:#2453d6;color:#fff;cursor:pointer}
 button:disabled{background:#99a}.err{background:#fdecec;color:#8a1111;padding:10px;border-radius:6px;margin-top:10px}
 .ok{color:#11702c}.trunc{background:#ffe1b3;border:2px solid #d97a00;color:#5a3200;font-weight:700;padding:12px;border-radius:8px;margin-bottom:12px}.warn{background:#fff6dc;padding:8px;border-radius:6px}ul{padding-left:20px}small{color:#667}
+/* Visual pieces ported to vanilla CSS/JS from React Bits (https://reactbits.dev):
+   ShinyText (status text), SpotlightCard (result card), CountUp (counts).
+   React Bits is licensed MIT + Commons Clause. Inline only: no CDN, no React, works offline. */
+.status{display:flex;align-items:center;gap:10px;margin-top:10px}
+.orbit{width:18px;height:18px;border-radius:50%;border:3px solid #d6defa;border-top-color:#2453d6;animation:spin .9s linear infinite;flex:none}
+.shiny{color:#4b5875;background:linear-gradient(110deg,#4b5875 40%,#c8d4ff 50%,#4b5875 60%);background-size:200% 100%;
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:shine 2.4s linear infinite}
+.elapsed{color:#667;font-size:12px;font-variant-numeric:tabular-nums}
+@keyframes spin{to{transform:rotate(360deg)}}@keyframes shine{from{background-position:100% 0}to{background-position:-100% 0}}
+.spot{position:relative;overflow:hidden;border:1px solid #d8dce5;border-radius:12px;padding:16px;background:#fbfcff;
+  --mx:50%;--my:0%}
+.spot::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .4s;
+  background:radial-gradient(circle at var(--mx) var(--my),rgba(36,83,214,.13),transparent 60%)}
+.spot:hover::before,.spot.lit::before{opacity:1}.spot>*{position:relative}
+.stats{display:flex;gap:12px;margin:4px 0 12px}.stat{flex:1;text-align:center;border-radius:10px;background:#eef2ff;padding:10px 6px}
+.stat b{display:block;font-size:26px;color:#2453d6;font-variant-numeric:tabular-nums}.stat span{font-size:12px;color:#4b5875}
+@media (prefers-reduced-motion: reduce){.orbit,.shiny{animation:none}.shiny{-webkit-text-fill-color:#4b5875}.spot::before{transition:none}}
 </style></head><body>
 <h1>AgentHub Local &middot; Meeting Notes</h1>
 <p><small>Runs on this PC. Your document never leaves it; only usage counts are sent to AgentHub.</small></p>
@@ -62,25 +79,56 @@ $("run").onclick = async () => {
   const onboarding = {}; document.querySelectorAll("[data-qid]").forEach(t => onboarding[t.dataset.qid] = t.value);
   const st = await api("/ui/api/run", {method:"POST", headers:{...H,"Content-Type":"application/json"}, body: JSON.stringify({upload_id: up.upload_id, onboarding})});
   if (!st.ok){ $("run").disabled = false; return err("runMsg", st.message); }
-  $("runMsg").textContent = "Working... this can take a minute or two on this PC.";
+  working(true);
   for (;;){ await new Promise(r => setTimeout(r, 2000));
     const j = await api("/ui/api/jobs/" + st.job_id);
     if (j.status === "queued" || j.status === "running") continue;
-    $("run").disabled = false;
+    $("run").disabled = false; working(false);
     if (!j.ok) return err("runMsg", j.message);
     $("runMsg").textContent = ""; render(j); return; }
 };
+const REDUCED = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+// CountUp (React Bits): ease-out count from 0 to the target; instant when reduced motion is preferred.
+function countUp(el, to, ms){
+  if (REDUCED || !to){ el.textContent = String(to); return; }
+  const t0 = performance.now();
+  (function step(t){ const k = Math.min(1, (t - t0) / ms); el.textContent = String(Math.round(to * (1 - Math.pow(1 - k, 3))));
+    if (k < 1) requestAnimationFrame(step); })(t0);
+}
+// SpotlightCard (React Bits): radial highlight follows the pointer via CSS variables.
+function spotlight(card){
+  card.addEventListener("pointermove", e => { const r = card.getBoundingClientRect();
+    card.style.setProperty("--mx", (e.clientX - r.left) + "px"); card.style.setProperty("--my", (e.clientY - r.top) + "px"); });
+  if (!REDUCED){ card.classList.add("lit"); setTimeout(() => card.classList.remove("lit"), 1400); }
+}
+let ticker = null;
+function working(on){
+  clearInterval(ticker); ticker = null;
+  if (!on) return;
+  const t0 = Date.now();
+  // ShinyText (React Bits) status line; the text keeps "Working..." for scripts that wait on it.
+  $("runMsg").innerHTML = '<div class="status" role="status" aria-live="polite"><span class="orbit" aria-hidden="true"></span>' +
+    '<span class="shiny">Working... this can take a minute or two on this PC.</span><span class="elapsed" id="elapsed">0s</span></div>';
+  ticker = setInterval(() => { const e = $("elapsed"); if (e) e.textContent = Math.round((Date.now() - t0) / 1000) + "s"; }, 1000);
+}
 function list(items, fmt){ return items && items.length ? "<ul>" + items.map(i => "<li>" + fmt(i) + "</li>").join("") + "</ul>" : "<p><small>None found.</small></p>"; }
 function render(j){
   const o = j.output || {};
-  $("result").innerHTML = (j.model_fallback ? '<div class=\"warn\">&#9432; ' + esc(j.model_fallback.message) + '</div>' : "") +
+  const n = a => (a && a.length) || 0;
+  $("result").innerHTML = '<div class="spot" id="card">' +
+    '<p><a href="' + esc(j.json_url) + '" target="_blank">Open saved JSON</a><br><small>' + esc(j.result_path) + '</small></p>' +
+    (j.model_fallback ? '<div class="warn">&#9432; ' + esc(j.model_fallback.message) + '</div>' : "") +
     (j.model_used ? '<p><small>Model: ' + esc(j.model_used) + '</small></p>' : "") +
     (j.truncation_message ? '<div class="trunc">&#9888; Document truncated: ' + esc(j.truncation_message) + ' The notes below cover only that part. Split the document to process the rest.</div>' : "") +
+    '<div class="stats"><div class="stat"><b id="nDec">0</b><span>decisions</span></div>' +
+    '<div class="stat"><b id="nAct">0</b><span>action items</span></div>' +
+    '<div class="stat"><b id="nQ">0</b><span>open questions</span></div></div>' +
     "<h3>Summary</h3><p>" + esc(o.summary) + "</p>" +
     "<h3>Decisions</h3>" + list(o.decisions, esc) +
     "<h3>Action items</h3>" + list(o.action_items, a => "<b>" + esc(a.owner) + "</b>: " + esc(a.task)) +
-    "<h3>Open questions</h3>" + list(o.open_questions, esc) +
-    '<p><a href="' + esc(j.json_url) + '" target="_blank">Open saved JSON</a><br><small>' + esc(j.result_path) + '</small></p>';
+    "<h3>Open questions</h3>" + list(o.open_questions, esc) + '</div>';
+  spotlight($("card"));
+  countUp($("nDec"), n(o.decisions), 900); countUp($("nAct"), n(o.action_items), 900); countUp($("nQ"), n(o.open_questions), 900);
   $("s4").classList.remove("off");
 }
 refresh();

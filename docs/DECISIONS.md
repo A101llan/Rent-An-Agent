@@ -191,3 +191,18 @@ Bugs found by the Ollama Integrator in real runs:
   - Ollama's global `OLLAMA_KEEP_ALIVE` (a shared setting, which the Integrator owns, and it would affect other apps).
   - A separate unload call after each run (an extra request; the per-request field does the same thing).
   - Keep Ollama's default (the problem above).
+
+### D18. /ui polish with React Bits pieces ported to vanilla JS/CSS
+- **Choice:** three React Bits (reactbits.dev) components are re-implemented inline in `ui/index.html`, with no React, no CDN and no external requests, so the page works offline:
+  - **ShinyText:** a status line plus a spinner and an elapsed-seconds counter while a job runs.
+  - **SpotlightCard:** a radial highlight on the result card that follows the pointer.
+  - **CountUp:** animated counts of decisions, action items and open questions.
+  - `prefers-reduced-motion` turns off the animations; counts appear instantly.
+  - All existing ids and behaviour are kept: the "Working..." text, `#s4` un-dimming, and the JSON link inside `#result`. The token still never enters the page.
+  - Attribution comment: React Bits, MIT + Commons Clause.
+- **Why:** the job takes 40–90 s on the target PCs. Visible progress and a clear summary of the counts make the wait and the result easier to read, at zero dependency cost.
+- **Alternatives:**
+  - Bundling React and React Bits (adds a build step and size to a page served from a PyInstaller exe).
+  - Pulling them from a CDN (breaks offline use and the CSP).
+  - No polish.
+- **Licence note:** Commons Clause forbids selling the components themselves. Using them inside the product UI is fine; don't redistribute them as a standalone kit.

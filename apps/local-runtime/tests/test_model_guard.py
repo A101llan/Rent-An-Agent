@@ -174,3 +174,88 @@ def test_ui_shows_friendly_notice(monkeypatch, code, needle):
     jobs._jobs["jx"] = {"id": "jx", "status": "failed", "error_code": code, "error": msg}
     j = TestClient(main.app).get("/ui/api/jobs/jx").json()
     assert j["code"] == code and needle in j["message"]
+
+
+def test_fallback_and_models_read_from_config_files(tmp_path, monkeypatch):
+    import importlib
+
+    from app import config as cfg
+    home = tmp_path / "home"
+    home.mkdir()
+    (home / "config.json").write_text(json.dumps({"fallback_model": "small:1b", "models": {"big:3b": {"min_free_mb": 3000}}}))
+    monkeypatch.setenv("LOCAL_RUNTIME_HOME", str(home))
+    monkeypatch.delenv("LOCAL_RUNTIME_FALLBACK_MODEL", raising=False)
+    try:
+        c = importlib.reload(cfg)
+        assert c.FALLBACK_MODEL == "small:1b" and c.model_limits("big:3b")["min_free_mb"] == 3000
+    finally:
+        monkeypatch.undo()
+        importlib.reload(cfg)
+
+
+@pytest.mark.parametrize("ram,fallback,expect", [
+    (2000, "small:1b", "will use the smaller fallback model small:1b"),
+    (1000, "small:1b", "jobs will be refused"),
+    (2000, None, "jobs will be refused"),
+    (3500, "small:1b", None),
+])
+def test_low_memory_notice_considers_fallback(fake, monkeypatch, ram, fallback, expect):
+    _set_models(monkeypatch)
+    monkeypatch.setattr(config, "FALLBACK_MODEL", fallback)
+    monkeypatch.setattr(ollama_notes, "model_available", lambda m=None: True)
+    fake["ram"] = ram
+    low = [n for n in ollama_notes.runtime_notices() if n.startswith("LOW MEMORY")]
+    if expect is None:
+        assert low == []
+    else:
+        assert len(low) == 1 and expect in low[0]
+        if "refused" in expect:
+            assert "fallback model" not in low[0]
+        else:
+            assert "refused" not in low[0]
+
+
+@pytest.mark.parametrize("value", [0, 300, -1])
+def test_keep_alive_sent_on_every_chat_request(fake, monkeypatch, value):
+    seen = []
+    orig = ollama_notes.urllib.request.urlopen
+
+    def spy(req, timeout=None):
+        if not isinstance(req, str) and req.full_url.endswith("/api/chat"):
+            seen.append(json.loads(req.data).get("keep_alive", "MISSING"))
+        return orig(req, timeout=timeout)
+
+    monkeypatch.setattr(ollama_notes.urllib.request, "urlopen", spy)
+    monkeypatch.setattr(config, "KEEP_ALIVE_S", value)
+    ollama_notes.meeting_notes_response("x")
+    ollama_notes.meeting_notes_response("y")
+    assert seen == [value, value]
+    assert fake["unload"] == []  # success path: no extra unload call; abort/timeout keep their keep_alive:0
+
+
+def test_keep_alive_resolution_order(tmp_path, monkeypatch):
+    import importlib
+
+    from app import config as cfg
+    defaults = tmp_path / "config.defaults.json"
+    defaults.write_text(json.dumps({"keep_alive_s": 120}))
+    home = tmp_path / "home"
+    home.mkdir()
+    monkeypatch.setenv("LOCAL_RUNTIME_DEFAULTS_FILE", str(defaults))
+    monkeypatch.setenv("LOCAL_RUNTIME_HOME", str(home))
+    monkeypatch.delenv("LOCAL_RUNTIME_KEEP_ALIVE_S", raising=False)
+    try:
+        assert importlib.reload(cfg).KEEP_ALIVE_S == 120  # defaults file
+        (home / "config.json").write_text(json.dumps({"keep_alive_s": 60}))
+        assert importlib.reload(cfg).KEEP_ALIVE_S == 60  # config.json beats defaults
+        monkeypatch.setenv("LOCAL_RUNTIME_KEEP_ALIVE_S", "5")
+        assert importlib.reload(cfg).KEEP_ALIVE_S == 5  # env beats all
+        monkeypatch.setenv("LOCAL_RUNTIME_KEEP_ALIVE_S", "junk")
+        assert importlib.reload(cfg).KEEP_ALIVE_S == 0
+        monkeypatch.delenv("LOCAL_RUNTIME_KEEP_ALIVE_S")
+        (home / "config.json").unlink()
+        defaults.write_text("{}")
+        assert importlib.reload(cfg).KEEP_ALIVE_S == 0  # hardcoded
+    finally:
+        monkeypatch.undo()
+        importlib.reload(cfg)

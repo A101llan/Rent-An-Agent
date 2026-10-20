@@ -1,6 +1,6 @@
 {
   "_help": "Checked-in defaults for the local runtime. Precedence: env var > %LOCALAPPDATA%\\AgentHub\\LocalRuntime\\config.json (or <data dir>\\config.json) > this file > hardcoded llama3.2:1b / built-in prompt. prompt_file is relative to this file's folder. Do not put per-user settings here.",
-  "model": "llama3.2:1b",
+  "model": "qwen2.5:3b",
   "prompt_file": "prompts/decisions-v2.json",
   "num_predict": 384,
   "num_ctx": 2048,
@@ -8,5 +8,18 @@
   "timeout_s": 120,
   "max_input_chars": 6000,
   "min_free_mb": 1300,
-  "min_free_mb_loaded": 300
+  "min_free_mb_loaded": 300,
+  "fallback_model": "llama3.2:1b",
+  "models": {
+    "qwen2.5:3b": {
+      "timeout_s": 180,
+      "min_free_mb": 3000,
+      "min_free_mb_loaded": 300
+    },
+    "llama3.2:1b": {
+      "timeout_s": 120,
+      "min_free_mb": 1300,
+      "min_free_mb_loaded": 300
+    }
+  }
 }
